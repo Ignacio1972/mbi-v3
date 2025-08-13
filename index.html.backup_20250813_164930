@@ -31,10 +31,7 @@
                 ✏️ Texto Personalizado
             </button>
             <button class="tab-button" data-route="/campanas">
-                📝 Mensajes Guardados
-            </button>
-            <button class="tab-button" data-route="/audio-library">
-                📚 Biblioteca de Audio
+                📚 Biblioteca
             </button>
             <button class="tab-button" data-route="/calendario">
                 📅 Calendario

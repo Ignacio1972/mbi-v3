@@ -29,6 +29,7 @@ class Router {
         // Definir rutas
         this.routes.set('/configuracion', 'message-configurator');
         this.routes.set('/campanas', 'campaign-library');
+        this.routes.set("/audio-library", "audio-library");
         this.routes.set('/historial', 'audio-history');
         this.routes.set('/radio', 'radio'); 
         
