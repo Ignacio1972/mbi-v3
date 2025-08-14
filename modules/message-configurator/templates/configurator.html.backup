@@ -47,9 +47,9 @@
             <button class="btn btn-primary" data-action="generate-audio">
                 🎧 Generar Audio
             </button>
-<!-- ELIMINADO:             <button class="btn btn-success" data-action="save-message" id="saveMessageBtn" style="display: none;">-->
-<!-- ELIMINADO:                 💾 Guardar en Biblioteca-->
-<!-- ELIMINADO:             </button>-->
+            <button class="btn btn-success" data-action="save-message" id="saveMessageBtn" style="display: none;">
+                💾 Guardar en Biblioteca
+            </button>
         </div>
     </div>
     
@@ -64,20 +64,15 @@
         
         <div class="audio-container">
             <audio id="audio-player" controls></audio>
-        <!-- Mensaje informativo -->
-        <div class="alert alert-info" style="margin-top: 10px; padding: 10px; background: #e3f2fd; border-left: 3px solid #2196F3;">
-            <strong>💡 Tip:</strong> Todos los audios generados se guardan automáticamente en la <strong>Biblioteca de Audio</strong>. 
-            Desde allí puedes marcarlos como favoritos, enviarlos a la radio o gestionarlos.
-        </div>
         </div>
         
         <div class="audio-actions">
-<!-- ELIMINADO:             <button class="btn btn-success" data-action="send-radio">-->
-<!-- ELIMINADO:                 📻 Enviar a Radio-->
-<!-- ELIMINADO:             </button>-->
-<!-- ELIMINADO:             <button class="btn btn-secondary" data-action="download-audio">-->
-<!-- ELIMINADO:                 💾 Descargar-->
-<!-- ELIMINADO:             </button>-->
+            <button class="btn btn-success" data-action="send-radio">
+                📻 Enviar a Radio
+            </button>
+            <button class="btn btn-secondary" data-action="download-audio">
+                💾 Descargar
+            </button>
         </div>
         
         <div class="form-group">

@@ -197,9 +197,9 @@ export default class MessageConfiguratorModule {
             'use-template': () => this.handleUseTemplate(),
             'reset-controls': () => this.handleResetControls(),
             'generate-audio': () => this.handleGenerateAudio(),
-            'save-message': () => this.handleSaveMessage(),
-            'send-radio': () => this.handleSendRadio(),
-            'download-audio': () => this.handleDownloadAudio(),
+// ELIMINADO:             'save-message': () => this.handleSaveMessage(),
+// ELIMINADO:             'send-radio': () => this.handleSendRadio(),
+// ELIMINADO:             'download-audio': () => this.handleDownloadAudio(),
             'clear-result': () => this.handleClearResult(),
             updateField: (field, value) => {
                 this.stateManager.updateField(field, value);
@@ -280,7 +280,7 @@ export default class MessageConfiguratorModule {
             this.stateManager.updateField('azuracastFilename', result.azuracastFilename);
             
             this.uiHandler.showAudioPlayer(result.filename);
-            this.uiHandler.showStatus('¡Audio generado!', 'success');
+            this.uiHandler.showStatus('✅ Audio generado y guardado automáticamente en la Biblioteca', 'success');
             
             // Mostrar texto procesado si existe
             const processedTextEl = this.container.querySelector('#processedText');
