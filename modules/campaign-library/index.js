@@ -355,6 +355,9 @@ render() {
                     ${!isAudio ? `<button class="btn-icon" onclick="window.campaignLibrary.editMessage('${message.id}')" title="Editar título">
                         ✏️
                     </button>` : ''}
+                    <button class="btn-icon" onclick="window.campaignLibrary.changeCategory('${message.id}')" title="Cambiar categoría">
+                        🏷️
+                    </button>
                     <button class="btn-icon" onclick="window.campaignLibrary.sendToRadio('${message.id}')" title="Enviar a radio">
                         📻
                     </button>
@@ -371,7 +374,8 @@ render() {
             playMessage: (id) => this.playMessage(id),
             editMessage: (id) => this.editMessage(id),
             sendToRadio: (id) => this.sendToRadio(id),
-            deleteMessage: (id) => this.deleteMessage(id)
+            deleteMessage: (id) => this.deleteMessage(id),
+            changeCategory: (id) => this.changeCategory(id)
         };
     }
     
@@ -663,6 +667,63 @@ render() {
         const div = document.createElement('div');
         div.textContent = text;
         return div.innerHTML;
+    }
+    
+    async changeCategory(id) {
+        const message = this.messages.find(m => m.id === id);
+        if (!message) return;
+        
+        const categories = {
+            'sin_categoria': '📁 Sin categoría',
+            'ofertas': '🛒 Ofertas',
+            'eventos': '🎉 Eventos',
+            'informacion': 'ℹ️ Información',
+            'emergencias': '🚨 Emergencias',
+            'servicios': '🛎️ Servicios',
+            'horarios': '🕐 Horarios'
+        };
+        
+        let options = 'Selecciona una categoría:\n\n';
+        Object.keys(categories).forEach((key, index) => {
+            options += `${index + 1}. ${categories[key]}\n`;
+        });
+        
+        const selection = prompt(options + '\nIngresa el número (1-7):', '1');
+        if (!selection) return;
+        
+        const categoryKeys = Object.keys(categories);
+        const selectedIndex = parseInt(selection) - 1;
+        
+        if (selectedIndex < 0 || selectedIndex >= categoryKeys.length) {
+            this.showError('Selección inválida');
+            return;
+        }
+        
+        const newCategory = categoryKeys[selectedIndex];
+        
+        try {
+            if (message.type === 'audio') {
+                const response = await apiClient.post('/saved-messages.php', {
+                    action: 'update_category',
+                    id: message.id,
+                    category: newCategory
+                });
+                
+                if (response.success) {
+                    message.category = newCategory;
+                    this.displayMessages();
+                    this.showSuccess('Categoría actualizada');
+                }
+            } else {
+                message.category = newCategory;
+                storageManager.save(`library_message_${message.id}`, message);
+                this.displayMessages();
+                this.showSuccess('Categoría actualizada');
+            }
+        } catch (error) {
+            console.error('Error actualizando categoría:', error);
+            this.showError('Error al actualizar categoría');
+        }
     }
     
     showSuccess(message) {
