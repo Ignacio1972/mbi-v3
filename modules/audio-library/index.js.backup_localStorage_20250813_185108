@@ -1,6 +1,5 @@
 /**
  * Audio Library Module - Biblioteca de Archivos de Audio
- * VERSIÓN CON BASE DE DATOS - Reemplaza localStorage
  * @module AudioLibraryModule
  */
 
@@ -15,8 +14,7 @@ export default class AudioLibraryModule {
         this.currentSort = 'date_desc';
         this.currentView = 'grid';
         this.searchQuery = '';
-        this.favorites = []; // Se carga desde BD
-        this.migrationCompleted = false;
+        this.favorites = JSON.parse(localStorage.getItem('audio_favorites') || '[]');
     }
     
     getName() {
@@ -31,8 +29,6 @@ export default class AudioLibraryModule {
             this.render();
             await this.loadStyles();
             this.attachEvents();
-            await this.loadFavoritesFromDB(); // ← NUEVO: Cargar favoritos desde BD
-            await this.migrateLocalStorageIfNeeded(); // ← NUEVO: Migrar localStorage
             await this.loadLibrary();
             eventBus.emit('audio-library:loaded');
         } catch (error) {
@@ -151,83 +147,6 @@ export default class AudioLibraryModule {
         const refreshBtn = this.container.querySelector('#refreshBtn');
         refreshBtn?.addEventListener('click', () => this.loadLibrary());
     }
-    
-    // ============================================
-    // NUEVAS FUNCIONES PARA BASE DE DATOS
-    // ============================================
-    
-    /**
-     * Cargar favoritos desde base de datos
-     */
-    async loadFavoritesFromDB() {
-        try {
-            const response = await apiClient.post('/audio-favorites.php', {
-                action: 'get_favorites'
-            });
-            
-            if (response.success) {
-                this.favorites = response.favorites || [];
-                console.log('[AudioLibrary] Favoritos cargados desde BD:', this.favorites.length);
-            }
-        } catch (error) {
-            console.error('[AudioLibrary] Error cargando favoritos:', error);
-            // Fallback a localStorage temporalmente
-            this.favorites = JSON.parse(localStorage.getItem('audio_favorites') || '[]');
-        }
-    }
-    
-    /**
-     * Migrar favoritos de localStorage a BD (una sola vez)
-     */
-    async migrateLocalStorageIfNeeded() {
-        // Verificar si ya se migró
-        const migrated = localStorage.getItem('audio_favorites_migrated');
-        if (migrated === 'true') {
-            this.migrationCompleted = true;
-            return;
-        }
-        
-        // Obtener favoritos de localStorage
-        const localFavorites = JSON.parse(localStorage.getItem('audio_favorites') || '[]');
-        
-        if (localFavorites.length > 0) {
-            try {
-                console.log('[AudioLibrary] Migrando', localFavorites.length, 'favoritos a BD...');
-                
-                const response = await apiClient.post('/audio-favorites.php', {
-                    action: 'migrate_from_localstorage',
-                    favorites: localFavorites
-                });
-                
-                if (response.success) {
-                    console.log('[AudioLibrary] Migración exitosa:', response.migrated, 'favoritos');
-                    localStorage.setItem('audio_favorites_migrated', 'true');
-                    
-                    // Recargar favoritos desde BD
-                    await this.loadFavoritesFromDB();
-                    
-                    this.showNotification(
-                        `✅ ${response.migrated} favoritos migrados a base de datos`, 
-                        'success'
-                    );
-                } else {
-                    throw new Error(response.error || 'Error en migración');
-                }
-            } catch (error) {
-                console.error('[AudioLibrary] Error en migración:', error);
-                this.showNotification('Error migrando favoritos', 'error');
-            }
-        } else {
-            // No hay favoritos en localStorage, marcar como migrado
-            localStorage.setItem('audio_favorites_migrated', 'true');
-        }
-        
-        this.migrationCompleted = true;
-    }
-    
-    // ============================================
-    // FUNCIONES MODIFICADAS PARA USAR BD
-    // ============================================
     
     async loadLibrary() {
         try {
@@ -433,16 +352,6 @@ export default class AudioLibraryModule {
             playing.textContent = `🎵 ${this.getDisplayName(filename)}`;
             player.style.display = 'block';
             audio.play();
-            
-            // ← NUEVO: Registrar reproducción en BD
-            try {
-                await apiClient.post('/audio-metadata.php', {
-                    action: 'record_play',
-                    filename: filename
-                });
-            } catch (error) {
-                console.error('Error registrando reproducción:', error);
-            }
         }
     }
     
@@ -465,16 +374,6 @@ export default class AudioLibraryModule {
             
             if (response.success) {
                 this.showNotification('📻 Enviado a la radio', 'success');
-                
-                // ← NUEVO: Registrar envío a radio en BD
-                try {
-                    await apiClient.post('/audio-metadata.php', {
-                        action: 'record_radio_sent',
-                        filename: filename
-                    });
-                } catch (error) {
-                    console.error('Error registrando envío a radio:', error);
-                }
             }
         } catch (error) {
             this.showNotification('Error al enviar a radio', 'error');
@@ -520,18 +419,6 @@ export default class AudioLibraryModule {
             
             if (response.success) {
                 this.showNotification('✅ Archivo renombrado', 'success');
-                
-                // ← NUEVO: Actualizar metadata en BD
-                try {
-                    await apiClient.post('/audio-metadata.php', {
-                        action: 'set_display_name',
-                        filename: response.new_filename || filename,
-                        display_name: cleanDescription
-                    });
-                } catch (error) {
-                    console.error('Error actualizando metadata:', error);
-                }
-                
                 await this.loadLibrary();
             }
         } catch (error) {
@@ -539,72 +426,23 @@ export default class AudioLibraryModule {
         }
     }
     
-    /**
-     * Toggle favorito - MODIFICADO para usar BD
-     */
-    async toggleFavorite(filename) {
-        try {
-            const response = await apiClient.post('/audio-favorites.php', {
-                action: 'toggle_favorite',
-                filename: filename
-            });
-            
-            if (response.success) {
-                // Actualizar lista local de favoritos
-                const index = this.favorites.indexOf(filename);
-                
-                if (index > -1) {
-                    // REMOVER de favoritos
-                    this.favorites.splice(index, 1);
-                    
-                    // Actualizar metadata en BD para marcar como no guardado
-                    try {
-                        await apiClient.post('/audio-metadata.php', {
-                            action: 'update_metadata',
-                            filename: filename,
-                            metadata: {
-                                category: null,
-                                is_saved: false
-                            }
-                        });
-                    } catch (error) {
-                        console.error('Error actualizando metadata:', error);
-                    }
-                    
-                    this.showNotification('⭐ Removido de Mensajes Guardados', 'info');
-                } else {
-                    // AGREGAR a favoritos
-                    this.favorites.push(filename);
-                    
-                    // Actualizar metadata en BD para marcar como guardado
-                    const displayName = this.getDisplayName(filename);
-                    
-                    try {
-                        await apiClient.post('/audio-metadata.php', {
-                            action: 'update_metadata',
-                            filename: filename,
-                            metadata: {
-                                display_name: displayName,
-                                category: 'sin_categoria',
-                                is_saved: true,
-                                saved_at: new Date().toISOString()
-                            }
-                        });
-                    } catch (error) {
-                        console.error('Error actualizando metadata:', error);
-                    }
-                    
-                    this.showNotification('★ Agregado a Mensajes Guardados', 'success');
-                }
-                
-                // Actualizar stats y re-renderizar
-                this.updateStats();
-                this.renderLibrary();
-            }
-        } catch (error) {
-            console.error('Error en toggle favorito:', error);
-            this.showNotification('Error al actualizar favorito', 'error');
+    toggleFavorite(filename) {
+        const index = this.favorites.indexOf(filename);
+        
+        if (index > -1) {
+            this.favorites.splice(index, 1);
+            this.showNotification('⭐ Removido de favoritos', 'info');
+        } else {
+            this.favorites.push(filename);
+            this.showNotification('★ Agregado a favoritos', 'success');
         }
+        
+        // Guardar en localStorage
+        localStorage.setItem('audio_favorites', JSON.stringify(this.favorites));
+        
+        // Actualizar stats y re-renderizar
+        this.updateStats();
+        this.renderLibrary();
     }
     
     async deleteFile(filename) {
@@ -619,21 +457,11 @@ export default class AudioLibraryModule {
             });
             
             if (response.success) {
-                // ← NUEVO: Remover de favoritos en BD si estaba
-                if (this.favorites.includes(filename)) {
-                    try {
-                        await apiClient.post('/audio-favorites.php', {
-                            action: 'remove_favorite',
-                            filename: filename
-                        });
-                        
-                        const favIndex = this.favorites.indexOf(filename);
-                        if (favIndex > -1) {
-                            this.favorites.splice(favIndex, 1);
-                        }
-                    } catch (error) {
-                        console.error('Error removiendo de favoritos:', error);
-                    }
+                // Remover de favoritos si estaba
+                const favIndex = this.favorites.indexOf(filename);
+                if (favIndex > -1) {
+                    this.favorites.splice(favIndex, 1);
+                    localStorage.setItem('audio_favorites', JSON.stringify(this.favorites));
                 }
                 
                 this.showNotification('🗑️ Archivo eliminado', 'success');
