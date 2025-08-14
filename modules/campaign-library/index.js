@@ -361,6 +361,9 @@ render() {
                     <button class="btn-icon" onclick="window.campaignLibrary.sendToRadio('${message.id}')" title="Enviar a radio">
                         📻
                     </button>
+                    ${isAudio ? `<button class="btn-icon" onclick="window.campaignLibrary.scheduleMessage('${message.id}', '${message.title}')" title="Programar">
+                        🕐
+                    </button>` : ''}
                     <button class="btn-icon btn-danger" onclick="window.campaignLibrary.deleteMessage('${message.id}')" title="Eliminar">
                         🗑️
                     </button>
@@ -375,7 +378,8 @@ render() {
             editMessage: (id) => this.editMessage(id),
             sendToRadio: (id) => this.sendToRadio(id),
             deleteMessage: (id) => this.deleteMessage(id),
-            changeCategory: (id) => this.changeCategory(id)
+            changeCategory: (id) => this.changeCategory(id),
+            scheduleMessage: (id, title) => this.scheduleMessage(id, title)
         };
     }
     
@@ -580,6 +584,33 @@ render() {
             this.showError('Error al enviar: ' + error.message);
         }
     }
+
+    async scheduleMessage(id, title) {
+        const message = this.messages.find(m => m.id === id);
+        
+        if (!message || message.type !== 'audio') {
+            this.showError('Solo se pueden programar archivos de audio');
+            return;
+        }
+        
+        try {
+            // Cargar el modal dinámicamente
+            if (!window.ScheduleModal) {
+                const module = await import('./schedule-modal.js');
+                window.ScheduleModal = module.ScheduleModal || module.default;
+            }
+            
+            const modal = new window.ScheduleModal();
+            modal.show(message.filename, title || message.title);
+            
+        } catch (error) {
+            console.error('Error al cargar modal:', error);
+            // Fallback: navegar al calendario
+            eventBus.emit('navigate', { module: 'calendar' });
+            this.showSuccess('Usa el calendario para programar este audio');
+        }
+    }
+
     
     async deleteMessage(id) {
         const message = this.messages.find(m => m.id === id);
