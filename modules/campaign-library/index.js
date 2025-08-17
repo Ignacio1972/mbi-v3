@@ -243,7 +243,8 @@ render() {
     
     async loadBackendMessages() {
         try {
-            const response = await fetch('/api/library-metadata.php', {
+            // Cargar mensajes guardados desde BD (incluye archivos de audio)
+            const response = await fetch('/api/saved-messages.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ action: 'list' })
@@ -252,10 +253,29 @@ render() {
             if (!response.ok) throw new Error('Backend error');
             
             const result = await response.json();
-            return result.success ? result.messages : [];
+            
+            if (result.success && result.messages) {
+                console.log('[CampaignLibrary] Cargados', result.messages.length, 'mensajes desde BD');
+                
+                // Formatear mensajes de audio para que sean compatibles
+                return result.messages.map(msg => ({
+                    id: msg.id,
+                    title: msg.title || msg.filename,
+                    content: msg.content || 'Archivo de audio',
+                    category: msg.category || 'sin_categoria',
+                    type: msg.type || 'audio',
+                    filename: msg.filename,
+                    timestamp: msg.timestamp || new Date(msg.createdAt).getTime(),
+                    createdAt: msg.createdAt,
+                    playCount: msg.playCount,
+                    radioCount: msg.radioCount
+                }));
+            }
+            
+            return [];
             
         } catch (error) {
-            console.warn('Backend unavailable, using local storage only');
+            console.warn('Backend unavailable, using local storage only:', error);
             return [];
         }
     }
@@ -297,8 +317,21 @@ render() {
             return;
         }
         
-        grid.innerHTML = this.filteredMessages.map(message => `
-            <div class="message-card" data-id="${message.id}">
+        grid.innerHTML = this.filteredMessages.map(message => {
+            // Diferenciar entre mensajes de texto y archivos de audio
+            const isAudio = message.type === 'audio';
+            const excerpt = isAudio 
+                ? `🎵 ${message.filename || 'Archivo de audio'}` 
+                : this.escapeHtml(message.excerpt || message.text?.substring(0, 100) + '...' || '');
+            
+            const metaInfo = isAudio
+                ? `<span class="message-type">🎵 Audio</span>
+                   ${message.playCount ? `<span>▶️ ${message.playCount}</span>` : ''}
+                   ${message.radioCount ? `<span>📻 ${message.radioCount}</span>` : ''}`
+                : `<span class="message-voice">🎤 ${message.voice || 'Sin voz'}</span>`;
+            
+            return `
+            <div class="message-card ${isAudio ? 'audio-card' : ''}" data-id="${message.id}">
                 <div class="message-card-header">
                     <h3 class="message-title">${this.escapeHtml(message.title)}</h3>
                     <span class="message-category ${message.category || 'sin-categoria'}">
@@ -307,21 +340,21 @@ render() {
                 </div>
                 
                 <div class="message-excerpt">
-                    ${this.escapeHtml(message.excerpt || message.text.substring(0, 100) + '...')}
+                    ${excerpt}
                 </div>
                 
                 <div class="message-meta">
-                    <span class="message-voice">🎤 ${message.voice}</span>
-                    <span class="message-date">📅 ${this.formatDate(message.savedAt)}</span>
+                    ${metaInfo}
+                    <span class="message-date">📅 ${this.formatDate(message.savedAt || message.createdAt)}</span>
                 </div>
                 
                 <div class="message-actions">
                     <button class="btn-icon" onclick="window.campaignLibrary.playMessage('${message.id}')" title="Reproducir">
                         ▶️
                     </button>
-                    <button class="btn-icon" onclick="window.campaignLibrary.editMessage('${message.id}')" title="Editar título">
+                    ${!isAudio ? `<button class="btn-icon" onclick="window.campaignLibrary.editMessage('${message.id}')" title="Editar título">
                         ✏️
-                    </button>
+                    </button>` : ''}
                     <button class="btn-icon" onclick="window.campaignLibrary.sendToRadio('${message.id}')" title="Enviar a radio">
                         📻
                     </button>
@@ -330,7 +363,8 @@ render() {
                     </button>
                 </div>
             </div>
-        `).join('');
+            `;
+        }).join('');
         
         // Exponer métodos globalmente para onclick
         window.campaignLibrary = {
@@ -431,7 +465,16 @@ render() {
     
     async playMessage(id) {
         const message = this.messages.find(m => m.id === id);
-        if (!message || !message.audioFilename) {
+        
+        // Determinar el archivo de audio según el tipo
+        let audioFilename;
+        if (message.type === 'audio') {
+            audioFilename = message.filename; // Archivos de audio guardados
+        } else {
+            audioFilename = message.audioFilename; // Mensajes de texto con audio generado
+        }
+        
+        if (!message || !audioFilename) {
             this.showError('Audio no disponible');
             return;
         }
@@ -451,7 +494,8 @@ render() {
                 <button onclick="this.parentElement.parentElement.remove()">✕</button>
             </div>
             <audio controls autoplay>
-<source src="/api/biblioteca.php?filename=${message.azuracastFilename || message.audioFilename}" type="audio/mpeg">                Tu navegador no soporta el elemento de audio.
+                <source src="/api/biblioteca.php?filename=${audioFilename}" type="audio/mpeg">
+                Tu navegador no soporta el elemento de audio.
             </audio>
         `;
         
@@ -497,7 +541,16 @@ render() {
     
     async sendToRadio(id) {
         const message = this.messages.find(m => m.id === id);
-        if (!message || !message.azuracastFilename) {
+        
+        // Determinar el archivo según el tipo
+        let audioFilename;
+        if (message.type === 'audio') {
+            audioFilename = message.filename; // Archivos de audio guardados
+        } else {
+            audioFilename = message.azuracastFilename; // Mensajes de texto con audio
+        }
+        
+        if (!message || !audioFilename) {
             this.showError('Audio no disponible para enviar');
             return;
         }
@@ -505,9 +558,13 @@ render() {
       //  if (!confirm(`¿Enviar "${message.title}" a la radio ahora?`)) return;
         
         try {
-            const response = await apiClient.post('/generate.php', {
-                action: 'send_to_radio',
-                filename: message.azuracastFilename
+            // Usar diferentes endpoints según el tipo
+            const endpoint = message.type === 'audio' ? '/biblioteca.php' : '/generate.php';
+            const action = message.type === 'audio' ? 'send_library_to_radio' : 'send_to_radio';
+            
+            const response = await apiClient.post(endpoint, {
+                action: action,
+                filename: audioFilename
             });
             
             if (response.success) {

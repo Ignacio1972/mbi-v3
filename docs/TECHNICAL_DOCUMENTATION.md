@@ -398,14 +398,16 @@ AzuraCast API v0.17+
 🔗 Important URLs
 Development
 
-Local: http://localhost/mbi-v3/
-API: http://localhost/mbi-v3/api/
+Local: http://localhost:8000 (php -S localhost:8000)
+API: http://localhost:8000/api/
 
 Production
 
-Frontend: Served via Nginx
-Radio: http://51.222.25.222
-AzuraCast: Port 8000
+🚨 **PROYECTO WEB:** http://51.222.25.222:3000/
+🎵 **RADIO STREAM:** http://51.222.25.222 
+📡 **AZURACAST API:** Port 8000
+
+⚠️ **CRÍTICO:** NO modificar configuración de puertos AzuraCast. Solo usar puerto 3000 para proyecto web.
 
 
 📌 Notes for LLM Context

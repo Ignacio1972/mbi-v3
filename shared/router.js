@@ -11,7 +11,7 @@ class Router {
     constructor() {
         this.routes = new Map();
         this.currentRoute = null;
-        this.defaultRoute = '/radio';
+        this.defaultRoute = '/configuracion';
         this.initialized = false;
         this.routes.set('/calendario', 'calendar');
         // Agregar después de las otras rutas
