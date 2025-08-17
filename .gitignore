@@ -39,3 +39,7 @@ node_modules/
 Thumbs.db
 api/config.php
 .env
+
+# Backups
+backups/*
+!backups/.gitkeep

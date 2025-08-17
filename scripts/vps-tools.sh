@@ -135,19 +135,15 @@ local_sync_to_vps() {
     fi
 }
 
-# Función para backup del VPS
+# Función para backup del VPS (integrado con backup-manager)
 vps_backup() {
-    local backup_name="mbi-v3-backup-$(date +%Y%m%d-%H%M).tar.gz"
+    local description="$1"
     
-    print_status "💾 Creando backup: $backup_name"
+    print_status "💾 Creando backup con backup-manager..."
     
-    $SSH_CMD "cd /var/www && tar -czf $backup_name mbi-v3/ --exclude='mbi-v3/.git' --exclude='mbi-v3/api/temp/*'"
-    
-    if [ $? -eq 0 ]; then
-        print_success "✅ Backup creado: /var/www/$backup_name"
-    else
-        print_error "❌ Error creando backup"
-    fi
+    # Usar el backup-manager para crear backup completo
+    local script_dir="$(dirname "$0")"
+    "$script_dir/backup-manager.sh" backup-vps "$description"
 }
 
 # Función para ver logs del proyecto
@@ -179,23 +175,31 @@ vps_services() {
 show_help() {
     echo "🚀 VPS Tools for MBI-v3 Project"
     echo
-    echo "Uso: $0 [COMANDO]"
+    echo "Uso: $0 [COMANDO] [OPCIONES]"
     echo
     echo "Comandos disponibles:"
-    echo "  check       - Verificar conexión al VPS"
-    echo "  status      - Mostrar estado del proyecto"
-    echo "  deploy      - Commit y push desde VPS"
-    echo "  sync-down   - Sincronizar VPS → Local"
-    echo "  sync-up     - Sincronizar Local → VPS"
-    echo "  backup      - Crear backup del proyecto"
-    echo "  logs        - Ver logs del proyecto"
-    echo "  services    - Verificar estado de servicios"
-    echo "  help        - Mostrar esta ayuda"
+    echo "  check              - Verificar conexión al VPS"
+    echo "  status             - Mostrar estado del proyecto"
+    echo "  deploy [message]   - Commit y push desde VPS"
+    echo "  sync-down          - Sincronizar VPS → Local"
+    echo "  sync-up            - Sincronizar Local → VPS"
+    echo "  backup [desc]      - Crear backup del VPS"
+    echo "  logs               - Ver logs del proyecto"
+    echo "  services           - Verificar estado de servicios"
+    echo "  help               - Mostrar esta ayuda"
+    echo
+    echo "📦 Comandos de Backup (usa backup-manager.sh para más opciones):"
+    echo "  backup-manager.sh backup-local [desc]     - Backup local"
+    echo "  backup-manager.sh backup-full [desc]      - Backup completo"
+    echo "  backup-manager.sh list                    - Listar backups"
+    echo "  backup-manager.sh restore-local <name>    - Restaurar local"
+    echo "  backup-manager.sh restore-vps <name>      - Restaurar VPS"
     echo
     echo "Ejemplos:"
     echo "  $0 status"
     echo "  $0 deploy \"Nuevo feature implementado\""
-    echo "  $0 sync-up"
+    echo "  $0 backup \"Antes de cambios importantes\""
+    echo "  ./scripts/backup-manager.sh backup-full \"Backup semanal\""
 }
 
 # Script principal
