@@ -48,6 +48,45 @@ export class EventModal {
                                 <option value="">-- Seleccionar archivo --</option>
                             </select>
                             <small class="form-help">Archivos disponibles de la biblioteca</small>
+                        
+                        <!-- Tipo de Programación -->
+                        <div class="form-group">
+                            <label class="form-label required">
+                                <span class="form-label__icon">🔄</span>
+                                Tipo de Programación
+                            </label>
+                            <div class="schedule-type-selector" style="display: flex; gap: 10px;">
+                                <label class="radio-option">
+                                    <input type="radio" name="schedule-type" value="once" checked>
+                                    <span>Una vez</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="schedule-type" value="daily">
+                                    <span>Diario</span>
+                                </label>
+                                <label class="radio-option">
+                                    <input type="radio" name="schedule-type" value="weekly">
+                                    <span>Días específicos</span>
+                                </label>
+                            </div>
+                        </div>
+                        
+                        <!-- Días de la semana -->
+                        <div class="form-group" id="weekdays-group" style="display: none;">
+                            <label class="form-label">
+                                <span class="form-label__icon">📅</span>
+                                Días de la Semana
+                            </label>
+                            <div class="weekdays-selector" style="display: flex; gap: 8px; flex-wrap: wrap;">
+                                <label><input type="checkbox" name="weekday" value="1"> Lun</label>
+                                <label><input type="checkbox" name="weekday" value="2"> Mar</label>
+                                <label><input type="checkbox" name="weekday" value="3"> Mié</label>
+                                <label><input type="checkbox" name="weekday" value="4"> Jue</label>
+                                <label><input type="checkbox" name="weekday" value="5"> Vie</label>
+                                <label><input type="checkbox" name="weekday" value="6"> Sáb</label>
+                                <label><input type="checkbox" name="weekday" value="0"> Dom</label>
+                            </div>
+                        </div>
                         </div>
                         
                         <!-- Fecha y hora -->
@@ -216,6 +255,18 @@ export class EventModal {
         });
         
         // Auto-llenar fecha/hora con valores actuales al cambiar archivo
+        
+        // Mostrar/ocultar campos según tipo de programación
+        document.querySelectorAll("input[name="schedule-type"]").forEach(radio => {
+            radio.addEventListener("change", (e) => {
+                const weekdaysGroup = document.getElementById("weekdays-group");
+                if (e.target.value === "weekly") {
+                    weekdaysGroup.style.display = "block";
+                } else {
+                    weekdaysGroup.style.display = "none";
+                }
+            });
+        });
         document.getElementById('event-file').addEventListener('change', (e) => {
             if (!this.isEditMode && e.target.value) {
                 this.setDefaultDateTime();
@@ -341,14 +392,28 @@ export class EventModal {
         }
         
         // Recopilar datos
+        // Recopilar datos
+        const scheduleType = document.querySelector("input[name="schedule-type"]:checked").value;
+        let scheduleDays = "once";
+        
+        if (scheduleType === "daily") {
+            scheduleDays = "daily";
+        } else if (scheduleType === "weekly") {
+            const checkedDays = Array.from(document.querySelectorAll("input[name="weekday"]:checked"))
+                .map(cb => cb.value);
+            scheduleDays = checkedDays.length > 0 ? checkedDays.join(",") : "once";
+        }
+        
         const eventData = {
-            title: document.getElementById('event-title').value.trim(),
-            file_path: document.getElementById('event-file').value,
-            category: document.querySelector('input[name="event-category"]:checked').value,
-            start_datetime: this.getDateTime(),
-            priority: parseInt(document.getElementById('event-priority').value),
-            notes: document.getElementById('event-notes').value.trim(),
-            is_active: document.getElementById('event-active').checked
+            title: document.getElementById("event-title").value.trim(),
+            filename: document.getElementById("event-file").value,
+            schedule_time: document.getElementById("event-time").value,
+            schedule_days: scheduleDays,
+            start_date: document.getElementById("event-date").value,
+            category: document.querySelector("input[name="event-category"]:checked").value,
+            priority: parseInt(document.getElementById("event-priority").value),
+            notes: document.getElementById("event-notes").value.trim(),
+            is_active: document.getElementById("event-active").checked
         };
         
         // Si es edición, agregar ID

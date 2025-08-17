@@ -7,7 +7,7 @@ import { apiClient } from '../../../shared/api-client.js';
 
 export class CalendarAPI {
     constructor() {
-        this.baseEndpoint = '/api/audio-scheduler.php';
+        this.baseEndpoint = '/calendario/api/calendar-api.php';
         this.cache = new Map();
         this.cacheTimeout = 60000; // 1 minuto
     }
@@ -336,16 +336,17 @@ export class CalendarAPI {
      * @private
      */
     prepareEventData(eventData) {
+        // Convertir fecha a formato ISO con timezone
+        const startDate = new Date(eventData.start_datetime);
+        
         return {
             id: eventData.id || null,
             title: eventData.title.trim(),
-            filename: eventData.filename,
-            schedule_time: eventData.schedule_time,
-            schedule_days: eventData.schedule_days || "once",
-            start_date: eventData.start_date,
-            end_date: eventData.end_date || null,
+            file_path: eventData.file_path,
+            category: eventData.category,
+            start_datetime: this.formatDateTime(startDate),
             priority: eventData.priority || 5,
-            notes: eventData.notes || "",
+            notes: eventData.notes || '',
             is_active: eventData.is_active !== false ? 1 : 0
         };
     }

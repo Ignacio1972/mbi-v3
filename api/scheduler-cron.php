@@ -52,7 +52,7 @@ try {
     $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     
     // Obtener programaciones a ejecutar
-    $ch = curl_init('http://localhost/api/audio-scheduler.php');
+    $ch = curl_init('http://localhost:3000/api/audio-scheduler.php');
     curl_setopt($ch, CURLOPT_POST, 1);
     curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode(['action' => 'check_execute']));
     curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
@@ -73,7 +73,7 @@ try {
             $success = sendToRadio($schedule['filename']);
             
             // Registrar ejecución
-            $ch = curl_init('http://localhost/api/audio-scheduler.php');
+            $ch = curl_init('http://localhost:3000/api/audio-scheduler.php');
             curl_setopt($ch, CURLOPT_POST, 1);
             curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode([
                 'action' => 'log_execution',

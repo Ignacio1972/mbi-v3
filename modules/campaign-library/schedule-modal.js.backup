@@ -10,15 +10,6 @@ export class ScheduleModal {
     }
     
     show(filename, title) {
-        
-        // Cargar CSS externo
-        if (!document.getElementById("schedule-modal-css")) {
-            const link = document.createElement("link");
-            link.id = "schedule-modal-css";
-            link.rel = "stylesheet";
-            link.href = "./modules/campaign-library/styles/schedule-modal.css";
-            document.head.appendChild(link);
-        }
         this.selectedFile = filename;
         this.selectedTitle = title;
         this.createModal();
@@ -142,7 +133,7 @@ export class ScheduleModal {
         `;
         
         document.body.appendChild(modal);
-        // this.addStyles(); // Usando CSS externo ahora
+        this.addStyles();
     }
     
     createDaysSelector() {
@@ -235,7 +226,7 @@ export class ScheduleModal {
         }
         
         try {
-            const response = await fetch('http://51.222.25.222:3000/api/audio-scheduler.php', {
+            const response = await fetch('/api/audio-scheduler.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
