@@ -19,6 +19,22 @@ Password:39933993
 ### ⚠️ ADVERTENCIA CRÍTICA:
 **NO TOCAR PUERTOS DE AZURACAST** - El servidor usa múltiples puertos para radio streaming. Solo usar puerto 3000 para el proyecto web.
 
+### 🔐 ACCESO DIRECTO AL VPS:
+**Claude Code PUEDE trabajar directamente en el VPS:**
+
+```bash
+# Comando base de conexión SSH
+sshpass -p '39933993' ssh -o StrictHostKeyChecking=no root@51.222.25.222
+
+# Ejecutar comandos directos
+sshpass -p '39933993' ssh -o StrictHostKeyChecking=no root@51.222.25.222 "cd /var/www/mbi-v3 && COMANDO"
+
+# Script automatizado
+./scripts/vps-tools.sh status
+```
+
+**📖 Ver documentación completa:** `docs/VPS_ACCESS_GUIDE.md`
+
 ### FILOSOFIA
 Siempre encontrar la causa del problema antes de escribir codigo. 
 
