@@ -1,5 +1,6 @@
 <?php
 /**
+// Configurar zona horaria de Chiledate_default_timezone_set('America/Santiago');
  * API de Generación de Audio TTS - VERSIÓN SIMPLIFICADA
  * Mantiene toda la funcionalidad de AzuraCast
  */

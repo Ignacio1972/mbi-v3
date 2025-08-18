@@ -1,5 +1,6 @@
 <?php
 /**
+// Configurar zona horaria de Chiledate_default_timezone_set('America/Santiago');
  * API para programación automática de reproducción de audios en la radio
  * Sistema de scheduling para Mall Barrio Independencia
  */

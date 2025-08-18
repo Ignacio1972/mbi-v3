@@ -586,6 +586,8 @@ render() {
     }
 
     async scheduleMessage(id, title) {
+        console.log("[DEBUG] scheduleMessage - ID:", id, "Title:", title);
+        console.log("[DEBUG] Messages array:", this.messages.map(m => ({id: m.id, title: m.title, filename: m.filename})));
         const message = this.messages.find(m => m.id === id);
         
         if (!message || message.type !== 'audio') {
@@ -600,7 +602,9 @@ render() {
                 window.ScheduleModal = module.ScheduleModal || module.default;
             }
             
-            const modal = new window.ScheduleModal();
+            window.scheduleModal = new window.ScheduleModal();
+            const modal = window.scheduleModal;
+            console.log("[DEBUG] About to show modal with:", {filename: message.filename, title: title || message.title});
             modal.show(message.filename, title || message.title);
             
         } catch (error) {
