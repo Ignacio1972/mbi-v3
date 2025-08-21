@@ -341,7 +341,7 @@ export default class CalendarModule {
         const title = scheduleData.title || filename || 'Sin título';
         
         // URL del audio
-        const audioUrl = `http://51.222.25.222:8000/files/uploads/${filename}`;
+        const audioUrl = `/api/biblioteca.php?filename=${filename}`;
         
         // Formatear fecha de creación
         const createdDate = createdAt ? new Date(createdAt).toLocaleString('es-CL') : 'Fecha desconocida';

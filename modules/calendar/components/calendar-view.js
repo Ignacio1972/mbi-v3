@@ -1,10 +1,11 @@
 /**
  * Calendar View Component - Wrapper de FullCalendar
  * @module CalendarView
- * Version: 2.0 - Fixed schedule_days split issue
+ * Version: 2.1 - Fixed schedule_days and schedule_time parsing for 'specific' type
+ * @modified 2025-08-21 - Claude - Fix para schedules tipo 'specific' con días en formato string
  */
 
-console.log('[CalendarView] Loading version 2.0 with fixes');
+console.log('[CalendarView] Loading version 2.1 with specific schedule fixes');
 
 export class CalendarView {
     constructor(container, options = {}) {
@@ -155,14 +156,12 @@ export class CalendarView {
         info.el.style.cursor = 'pointer';
         
         // Extraer datos del evento
-        const eventData = {
+        const eventData = Object.assign({
             id: info.event.id,
             title: info.event.title,
             start: info.event.start,
-            end: info.event.end,
-            ...info.event.extendedProps
-        };
-        
+            end: info.event.end
+        }, info.event.extendedProps || {});
         console.log('[CalendarView] Event clicked, preventing default behavior');
         
         // Callback al módulo principal
@@ -224,10 +223,10 @@ export class CalendarView {
         tooltip.innerHTML = `
             <div class="tooltip-header">${event.title}</div>
             <div class="tooltip-body">
-                <p><strong>Archivo:</strong> ${event.extendedProps?.filename || event.extendedProps?.file_path || 'Sin archivo'}</p>
+                <p><strong>Archivo:</strong> ${(event.extendedProps && event.extendedProps.filename) || (event.extendedProps && event.extendedProps.file_path) || 'Sin archivo'}</p>
                 <p><strong>Hora:</strong> ${this.formatTime(event.start)}</p>
-                <p><strong>Tipo:</strong> ${event.extendedProps?.scheduleType || event.extendedProps?.type || 'Evento'}</p>
-                ${event.extendedProps?.notes ? `<p><strong>Notas:</strong> ${event.extendedProps.notes}</p>` : ''}
+                <p><strong>Tipo:</strong> ${(event.extendedProps && event.extendedProps.scheduleType) || (event.extendedProps && event.extendedProps.type) || 'Evento'}</p>
+                ${(event.extendedProps && event.extendedProps.notes) ? '<p><strong>Notas:</strong> ' + event.extendedProps.notes + '</p>' : ''}
             </div>
         `;
         
@@ -296,11 +295,12 @@ export class CalendarView {
                 throw new Error(data.error || 'Error al cargar schedules');
             }
             
-            console.log(`[CalendarView] Loaded ${data.schedules?.length || 0} schedules`);
+            console.log(`[CalendarView] Loaded ${(data.schedules && data.schedules.length) || 0} schedules`);
             
             // Transformar schedules a eventos FullCalendar
             const calendarEvents = this.transformSchedulesToEvents(data.schedules || []);
             
+            console.log("[CalendarView] Final calendar events created:", calendarEvents.length);
             return calendarEvents;
             
         } catch (error) {
@@ -315,6 +315,9 @@ export class CalendarView {
      * @returns {Array} Array de eventos FullCalendar
      */
     transformSchedulesToEvents(schedules) {
+        console.log("[CalendarView] Total schedules before filter:", schedules.length);
+        console.log("[CalendarView] Active schedules:", schedules.filter(s => s.is_active).length);
+        
         return schedules
             .filter(schedule => schedule.is_active) // Solo schedules activos
             .map(schedule => {
@@ -361,6 +364,7 @@ export class CalendarView {
      * Calcula la próxima ejecución de un schedule
      * @param {Object} schedule - Schedule del backend
      * @returns {Date|null} Próxima fecha de ejecución
+     * @modified 2025-08-21 - Claude - Fix completo para schedules tipo 'specific'
      */
     calculateNextExecution(schedule) {
         const now = new Date();
@@ -403,35 +407,123 @@ export class CalendarView {
                     return nextTime;
                     
                 case 'specific':
-                    // Para schedules específicos, encontrar próximo día/hora
+                    // INICIO DEL FIX - Procesamiento mejorado para schedules específicos
+                    console.log("[CalendarView] Processing specific schedule ID:", schedule.id);
+                    
+                    // Validar que tengamos los datos necesarios
                     if (!schedule.schedule_days || !schedule.schedule_time) {
+                        console.log("[CalendarView] Missing schedule_days or schedule_time for schedule:", schedule.id);
                         return null;
                     }
                     
-                    // Asegurar que schedule_days sea string válido antes de split
+                    // Mapeo de nombres de días en inglés a números (0=domingo, 6=sábado)
+                    const dayNameToNumber = {
+                        'sunday': 0, 
+                        'monday': 1, 
+                        'tuesday': 2, 
+                        'wednesday': 3,
+                        'thursday': 4, 
+                        'friday': 5, 
+                        'saturday': 6
+                    };
+                    
+                    // Procesar schedule_days - puede venir como array de strings o string
                     let targetDays = [];
-                    if (schedule.schedule_days && schedule.schedule_days !== 'null' && schedule.schedule_days !== 'undefined') {
-                        const daysString = typeof schedule.schedule_days === 'string' 
-                            ? schedule.schedule_days 
-                            : String(schedule.schedule_days);
-                        
-                        if (daysString && daysString !== 'null' && daysString !== 'undefined') {
-                            targetDays = daysString.split(',').map(d => {
-                                const parsed = parseInt(d.trim());
+                    
+                    if (Array.isArray(schedule.schedule_days)) {
+                        // Si ya es array, mapear los nombres a números
+                        targetDays = schedule.schedule_days.map(day => {
+                            if (typeof day === 'string') {
+                                const dayLower = day.toLowerCase().trim();
+                                const dayNumber = dayNameToNumber[dayLower];
+                                if (dayNumber !== undefined) {
+                                    return dayNumber;
+                                }
+                                // Si no es un nombre válido, intentar parsearlo como número
+                                const parsed = parseInt(day);
                                 return isNaN(parsed) ? null : parsed;
-                            }).filter(d => d !== null);
+                            }
+                            // Si ya es número, usarlo directamente
+                            return typeof day === 'number' ? day : parseInt(day);
+                        }).filter(d => d !== null && !isNaN(d) && d >= 0 && d <= 6);
+                        
+                    } else if (typeof schedule.schedule_days === 'string') {
+                        // Si es string, puede ser JSON o string separado por comas
+                        try {
+                            // Intentar parsear como JSON
+                            const parsed = JSON.parse(schedule.schedule_days);
+                            if (Array.isArray(parsed)) {
+                                targetDays = parsed.map(day => {
+                                    const dayLower = String(day).toLowerCase().trim();
+                                    return dayNameToNumber[dayLower] !== undefined 
+                                        ? dayNameToNumber[dayLower] 
+                                        : parseInt(day);
+                                }).filter(d => !isNaN(d) && d >= 0 && d <= 6);
+                            }
+                        } catch (e) {
+                            // Si no es JSON, tratar como string separado por comas
+                            const days = schedule.schedule_days.split(',');
+                            targetDays = days.map(day => {
+                                const trimmed = day.trim().toLowerCase();
+                                if (dayNameToNumber[trimmed] !== undefined) {
+                                    return dayNameToNumber[trimmed];
+                                }
+                                const parsed = parseInt(trimmed);
+                                return isNaN(parsed) ? null : parsed;
+                            }).filter(d => d !== null && !isNaN(d) && d >= 0 && d <= 6);
                         }
                     }
+                    
+                    console.log("[CalendarView] Processed targetDays for schedule", schedule.id, ":", targetDays);
                     
                     if (targetDays.length === 0) {
                         console.warn('[CalendarView] No valid days for specific schedule:', schedule.id);
                         return null;
                     }
-                    const timeParts = schedule.schedule_time.split(':');
-                    const hours = parseInt(timeParts[0]);
-                    const minutes = parseInt(timeParts[1]);
                     
-                    // Buscar próximo día que coincida
+                    // Procesar schedule_time - puede venir como JSON string, array o string simple
+                    let timeString;
+                    
+                    if (typeof schedule.schedule_time === 'string') {
+                        // Si es string, verificar si es JSON
+                        if (schedule.schedule_time.startsWith('[') || schedule.schedule_time.startsWith('{')) {
+                            try {
+                                const parsed = JSON.parse(schedule.schedule_time);
+                                timeString = Array.isArray(parsed) ? parsed[0] : parsed;
+                            } catch (e) {
+                                // No es JSON válido, usar como está
+                                timeString = schedule.schedule_time;
+                            }
+                        } else {
+                            // String simple, usar directamente
+                            timeString = schedule.schedule_time;
+                        }
+                    } else if (Array.isArray(schedule.schedule_time)) {
+                        // Si ya es array, tomar el primer elemento
+                        timeString = schedule.schedule_time[0];
+                    } else {
+                        // Otros casos, convertir a string
+                        timeString = String(schedule.schedule_time);
+                    }
+                    
+                    // Validar formato de hora HH:MM
+                    if (!timeString || !timeString.includes(':')) {
+                        console.warn('[CalendarView] Invalid time format for schedule:', schedule.id, timeString);
+                        return null;
+                    }
+                    
+                    const timeParts = timeString.split(':');
+                    const hours = parseInt(timeParts[0]);
+                    const minutes = parseInt(timeParts[1] || 0);
+                    
+                    if (isNaN(hours) || isNaN(minutes)) {
+                        console.warn('[CalendarView] Invalid time values for schedule:', schedule.id, timeString);
+                        return null;
+                    }
+                    
+                    console.log("[CalendarView] Processed time for schedule", schedule.id, ":", timeString);
+                    
+                    // Buscar la próxima ocurrencia en los próximos 7 días
                     for (let i = 0; i < 7; i++) {
                         const checkDate = new Date(now);
                         checkDate.setDate(now.getDate() + i);
@@ -439,10 +531,15 @@ export class CalendarView {
                         
                         const dayOfWeek = checkDate.getDay();
                         
+                        // Verificar si este día está en los días objetivo y es futuro
                         if (targetDays.includes(dayOfWeek) && checkDate > now) {
+                            console.log("[CalendarView] Next execution for schedule", schedule.id, ":", 
+                                checkDate.toLocaleString('es-CL'));
                             return checkDate;
                         }
                     }
+                    
+                    console.warn('[CalendarView] No future execution found for schedule:', schedule.id);
                     break;
                     
                 default:
@@ -450,7 +547,7 @@ export class CalendarView {
                     return null;
             }
         } catch (error) {
-            console.error('[CalendarView] Error calculating next execution:', error);
+            console.error('[CalendarView] Error calculating next execution for schedule', schedule.id, ':', error);
         }
         
         return null;
@@ -482,7 +579,7 @@ export class CalendarView {
                 <div class="event-info">
                     <div class="event-title">${event.title}</div>
                     <div class="event-category" style="color: ${event.backgroundColor}">
-                        ${event.extendedProps?.type === 'audio_schedule' ? 'Schedule de Audio' : this.getCategoryName(event.extendedProps?.category)}
+                        ${(event.extendedProps && event.extendedProps.type) === 'audio_schedule' ? 'Schedule de Audio' : this.getCategoryName(event.extendedProps && event.extendedProps.category)}
                     </div>
                 </div>
             </div>
