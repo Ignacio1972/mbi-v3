@@ -37,3 +37,19 @@ node_modules/
 
 # Archivos del sistema
 Thumbs.db
+
+# Backup files
+*.backup
+*.backup-*
+*.backup_*
+.backup-*
+scheduler-cron.php.backup
+test_schedule_format.php
+
+# Directories
+musica/
+backups/
+
+# Temporary files
+*.tmp
+*.temp
