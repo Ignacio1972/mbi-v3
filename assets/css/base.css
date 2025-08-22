@@ -449,3 +449,37 @@ button {
    from { opacity: 1; }
    to { opacity: 0; }
 }
+/* Estilos para la tabla de schedules */
+.schedules-table-container {
+    margin-top: 1rem;
+}
+
+.schedules-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.schedules-table th,
+.schedules-table td {
+    padding: 0.75rem;
+    text-align: left;
+}
+
+.schedules-table tbody tr:hover {
+    background: rgba(255,255,255,0.02);
+}
+
+.table-responsive {
+    overflow-x: auto;
+}
+
+@media (max-width: 768px) {
+    .schedules-table {
+        font-size: 0.875rem;
+    }
+    
+    .schedules-table th,
+    .schedules-table td {
+        padding: 0.5rem;
+    }
+}
