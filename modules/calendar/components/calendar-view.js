@@ -271,21 +271,6 @@ export class CalendarView {
         }
     }
     
-    getCategoryColor(category) {
-        const colors = {
-            'ofertas': { background: 'rgba(16, 185, 129, 0.8)', border: '#10b981' },
-            'eventos': { background: 'rgba(59, 130, 246, 0.8)', border: '#3b82f6' },
-            'informacion': { background: 'rgba(99, 102, 241, 0.8)', border: '#6366f1' },
-            'emergencias': { background: 'rgba(239, 68, 68, 0.8)', border: '#ef4444' },
-            'servicios': { background: 'rgba(139, 92, 246, 0.8)', border: '#8b5cf6' },
-            'horarios': { background: 'rgba(245, 158, 11, 0.8)', border: '#f59e0b' },
-            'sin_categoria': { background: 'rgba(107, 114, 128, 0.8)', border: '#6b7280' },
-            'general': { background: 'rgba(107, 114, 128, 0.8)', border: '#6b7280' }
-        };
-        
-        return colors[category] || colors['general'];
-    }
-    
     transformSchedulesToEvents(schedules) {
         const events = [];
         
@@ -373,24 +358,18 @@ export class CalendarView {
                             eventDate.setSeconds(0);
                             eventDate.setMilliseconds(0);
                             
-                            // Obtener categoría (del schedule o por defecto)
-                            const category = schedule.category || 'general';
-                            const categoryColor = this.getCategoryColor(category);
-                            
                             // Crear el evento
                             const event = {
                                 id: `audio_schedule_${schedule.id}_${dayOffset}_${timeIndex}`,
                                 title: '🎵 ' + (schedule.title || schedule.filename),
                                 start: eventDate,
-                                backgroundColor: categoryColor.background,
-                                borderColor: categoryColor.border,
+                                backgroundColor: '#e74c3c',
+                                borderColor: '#c0392b',
                                 textColor: '#ffffff',
-                                className: `schedule-category-${category}`,
                                 extendedProps: {
                                     type: 'audio_schedule',
                                     scheduleId: schedule.id,
                                     filename: schedule.filename,
-                                    category: category,
                                     scheduleType: schedule.schedule_type,
                                     scheduleDays: schedule.schedule_days,
                                     scheduleTime: time, // Hora específica de este evento
@@ -417,23 +396,17 @@ export class CalendarView {
                         continue;
                     }
                     
-                    // Obtener categoría (del schedule o por defecto)
-                    const category = schedule.category || 'general';
-                    const categoryColor = this.getCategoryColor(category);
-                    
                     const event = {
                         id: 'audio_schedule_' + schedule.id,
                         title: '🎵 ' + (schedule.title || schedule.filename),
                         start: nextExecution,
-                        backgroundColor: categoryColor.background,
-                        borderColor: categoryColor.border,
+                        backgroundColor: '#e74c3c',
+                        borderColor: '#c0392b',
                         textColor: '#ffffff',
-                        className: `schedule-category-${category}`,
                         extendedProps: {
                             type: 'audio_schedule',
                             scheduleId: schedule.id,
                             filename: schedule.filename,
-                            category: category,
                             scheduleType: schedule.schedule_type,
                             intervalMinutes: schedule.interval_minutes,
                             intervalHours: schedule.interval_hours,
