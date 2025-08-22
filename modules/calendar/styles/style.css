@@ -254,3 +254,70 @@
         justify-content: center;
     }
 }
+
+/* ==========================================================================
+   Category Colors for Events
+   ========================================================================== */
+
+/* Colores de categorías para eventos del calendario */
+.schedule-category-ofertas,
+.event-category-ofertas { 
+    background: rgba(16, 185, 129, 0.2) !important; 
+    border-left: 4px solid #10b981 !important;
+}
+
+.schedule-category-eventos,
+.event-category-eventos { 
+    background: rgba(59, 130, 246, 0.2) !important; 
+    border-left: 4px solid #3b82f6 !important;
+}
+
+.schedule-category-informacion,
+.event-category-informacion { 
+    background: rgba(99, 102, 241, 0.2) !important; 
+    border-left: 4px solid #6366f1 !important;
+}
+
+.schedule-category-emergencias,
+.event-category-emergencias { 
+    background: rgba(239, 68, 68, 0.2) !important; 
+    border-left: 4px solid #ef4444 !important;
+}
+
+.schedule-category-servicios,
+.event-category-servicios { 
+    background: rgba(139, 92, 246, 0.2) !important; 
+    border-left: 4px solid #8b5cf6 !important;
+}
+
+.schedule-category-horarios,
+.event-category-horarios { 
+    background: rgba(245, 158, 11, 0.2) !important; 
+    border-left: 4px solid #f59e0b !important;
+}
+
+.schedule-category-sin-categoria,
+.schedule-category-general,
+.event-category-sin-categoria,
+.event-category-general { 
+    background: rgba(107, 114, 128, 0.2) !important; 
+    border-left: 4px solid #6b7280 !important;
+}
+
+/* Indicador de categoría pequeño */
+.category-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+    margin-right: 4px;
+}
+
+.category-dot.ofertas { background-color: #10b981; }
+.category-dot.eventos { background-color: #3b82f6; }
+.category-dot.informacion { background-color: #6366f1; }
+.category-dot.emergencias { background-color: #ef4444; }
+.category-dot.servicios { background-color: #8b5cf6; }
+.category-dot.horarios { background-color: #f59e0b; }
+.category-dot.sin-categoria,
+.category-dot.general { background-color: #6b7280; }
