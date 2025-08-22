@@ -352,9 +352,9 @@ render() {
                     <button class="btn-icon" onclick="window.campaignLibrary.playMessage('${message.id}')" title="Reproducir">
                         ▶️
                     </button>
-                    ${!isAudio ? `<button class="btn-icon" onclick="window.campaignLibrary.editMessage('${message.id}')" title="Editar título">
+                    <button class="btn-icon" onclick="window.campaignLibrary.editMessage('${message.id}')" title="Editar título">
                         ✏️
-                    </button>` : ''}
+                    </button>
                     <button class="btn-icon" onclick="window.campaignLibrary.changeCategory('${message.id}')" title="Cambiar categoría">
                         🏷️
                     </button>
@@ -522,25 +522,45 @@ render() {
             return;
         }
         
-        message.title = newTitle.trim();
+        const trimmedTitle = newTitle.trim();
+        message.title = trimmedTitle;
         message.updatedAt = Date.now();
         
-        // Guardar localmente
-        storageManager.save(`library_message_${message.id}`, message);
-        
-        // Guardar en backend
-        try {
-            await fetch('/api/library-metadata.php', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    action: 'update',
+        // Si es un archivo de audio, actualizar en BD
+        if (message.type === 'audio') {
+            try {
+                const response = await apiClient.post('/saved-messages.php', {
+                    action: 'update_display_name',
                     id: message.id,
-                    data: { title: newTitle }
-                })
-            });
-        } catch (error) {
-            console.error('Error actualizando en backend:', error);
+                    display_name: trimmedTitle
+                });
+                
+                if (!response.success) {
+                    throw new Error(response.error || 'Error actualizando nombre');
+                }
+            } catch (error) {
+                console.error('Error actualizando nombre de audio:', error);
+                this.showError('Error al actualizar nombre del audio');
+                return;
+            }
+        } else {
+            // Para mensajes de texto, guardar localmente
+            storageManager.save(`library_message_${message.id}`, message);
+            
+            // Guardar en backend
+            try {
+                await fetch('/api/library-metadata.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        action: 'update',
+                        id: message.id,
+                        data: { title: trimmedTitle }
+                    })
+                });
+            } catch (error) {
+                console.error('Error actualizando en backend:', error);
+            }
         }
         
         this.displayMessages();

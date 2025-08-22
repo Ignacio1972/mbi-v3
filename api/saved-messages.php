@@ -133,6 +133,41 @@ function updateCategory($data) {
     return ['success' => false, 'error' => 'Tipo de mensaje no soportado'];
 }
 
+/**
+ * Actualizar nombre de display de un mensaje de audio
+ */
+function updateDisplayName($data) {
+    global $dbPath;
+    
+    $id = $data['id'] ?? '';
+    $displayName = $data['display_name'] ?? '';
+    
+    if (empty($displayName)) {
+        return ['success' => false, 'error' => 'Nombre requerido'];
+    }
+    
+    // Si es un archivo de audio
+    if (strpos($id, 'audio_') === 0) {
+        $filename = str_replace('audio_', '', $id) . '.mp3';
+        
+        try {
+            $db = new PDO("sqlite:$dbPath");
+            $stmt = $db->prepare("UPDATE audio_metadata SET display_name = ?, updated_at = CURRENT_TIMESTAMP WHERE filename = ?");
+            $stmt->execute([$displayName, $filename]);
+            
+            if ($stmt->rowCount() > 0) {
+                return ['success' => true, 'message' => 'Nombre actualizado'];
+            } else {
+                return ['success' => false, 'error' => 'Audio no encontrado'];
+            }
+        } catch (Exception $e) {
+            return ['success' => false, 'error' => $e->getMessage()];
+        }
+    }
+    
+    return ['success' => false, 'error' => 'Tipo de mensaje no soportado'];
+}
+
 // Procesar request
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true);
@@ -145,6 +180,10 @@ switch ($action) {
         
     case 'update_category':
         echo json_encode(updateCategory($input));
+        break;
+        
+    case 'update_display_name':
+        echo json_encode(updateDisplayName($input));
         break;
         
     default:

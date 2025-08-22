@@ -243,8 +243,6 @@ export class CalendarView {
         events.forEach(event => {
             this.calendar.addEvent(event);
         });
-        
-        this.updateUpcomingEvents(events);
     }
     
     async loadAudioSchedules() {
@@ -282,37 +280,147 @@ export class CalendarView {
             if (!schedule.is_active) continue;
             
             try {
-                const nextExecution = this.calculateNextExecution(schedule);
-                
-                if (!nextExecution) {
-                    console.warn('[CalendarView] No next execution for schedule:', schedule.id);
-                    continue;
-                }
-                
-                const event = {
-                    id: 'audio_schedule_' + schedule.id,
-                    title: '🎵 ' + (schedule.title || schedule.filename),
-                    start: nextExecution,
-                    backgroundColor: '#e74c3c',
-                    borderColor: '#c0392b',
-                    textColor: '#ffffff',
-                    extendedProps: {
-                        type: 'audio_schedule',
-                        scheduleId: schedule.id,
-                        filename: schedule.filename,
-                        scheduleType: schedule.schedule_type,
-                        intervalMinutes: schedule.interval_minutes,
-                        intervalHours: schedule.interval_hours,
-                        scheduleDays: schedule.schedule_days,
-                        scheduleTime: schedule.schedule_time,
-                        startDate: schedule.start_date,
-                        endDate: schedule.end_date,
-                        isActive: schedule.is_active,
-                        createdAt: schedule.created_at
+                // Detectar si es tipo specific con múltiples configuraciones
+                if (schedule.schedule_type === 'specific' && 
+                    schedule.schedule_days && 
+                    schedule.schedule_time) {
+                    
+                    // Parsear los días (ya vienen como array)
+                    const scheduleDays = schedule.schedule_days;
+                    
+                    // Parsear las horas (pueden venir como JSON string)
+                    let scheduleTimes = [];
+                    if (typeof schedule.schedule_time === 'string' && schedule.schedule_time.startsWith('[')) {
+                        try {
+                            scheduleTimes = JSON.parse(schedule.schedule_time);
+                        } catch(e) {
+                            scheduleTimes = [schedule.schedule_time];
+                        }
+                    } else if (Array.isArray(schedule.schedule_time)) {
+                        scheduleTimes = schedule.schedule_time;
+                    } else {
+                        scheduleTimes = [schedule.schedule_time];
                     }
-                };
-                
-                events.push(event);
+                    
+                    // Generar eventos para los próximos 7 días
+                    const today = new Date();
+                    const maxDays = 7;
+                    
+                    for (let dayOffset = 0; dayOffset < maxDays; dayOffset++) {
+                        const checkDate = new Date();
+                        checkDate.setDate(today.getDate() + dayOffset);
+                        
+                        // Verificar si este día está en la programación
+                        const dayOfWeek = checkDate.getDay();
+                        const dayName = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'][dayOfWeek];
+                        
+                        // Verificar si el día está programado
+                        let isDayScheduled = false;
+                        if (Array.isArray(scheduleDays)) {
+                            isDayScheduled = scheduleDays.includes(dayName) || 
+                                           scheduleDays.includes(String(dayOfWeek));
+                        } else if (typeof scheduleDays === 'string') {
+                            isDayScheduled = scheduleDays.includes(dayName) || 
+                                           scheduleDays.includes(String(dayOfWeek));
+                        }
+                        
+                        if (!isDayScheduled) {
+                            continue; // Este día no está programado
+                        }
+                        
+                        // Verificar start_date
+                        if (schedule.start_date) {
+                            const startDate = new Date(schedule.start_date);
+                            if (checkDate < startDate) {
+                                continue; // Aún no ha comenzado
+                            }
+                        }
+                        
+                        // Verificar end_date
+                        if (schedule.end_date) {
+                            const endDate = new Date(schedule.end_date);
+                            if (checkDate > endDate) {
+                                continue; // Ya terminó
+                            }
+                        }
+                        
+                        // Crear un evento por cada hora programada
+                        for (let timeIndex = 0; timeIndex < scheduleTimes.length; timeIndex++) {
+                            const time = scheduleTimes[timeIndex];
+                            const timeParts = time.split(':');
+                            const hours = parseInt(timeParts[0]);
+                            const minutes = parseInt(timeParts[1] || '0');
+                            
+                            // Crear fecha/hora específica
+                            const eventDate = new Date(checkDate);
+                            eventDate.setHours(hours - 4); // Aplicar offset UTC-4
+                            eventDate.setMinutes(minutes);
+                            eventDate.setSeconds(0);
+                            eventDate.setMilliseconds(0);
+                            
+                            // Crear el evento
+                            const event = {
+                                id: `audio_schedule_${schedule.id}_${dayOffset}_${timeIndex}`,
+                                title: '🎵 ' + (schedule.title || schedule.filename),
+                                start: eventDate,
+                                backgroundColor: '#e74c3c',
+                                borderColor: '#c0392b',
+                                textColor: '#ffffff',
+                                extendedProps: {
+                                    type: 'audio_schedule',
+                                    scheduleId: schedule.id,
+                                    filename: schedule.filename,
+                                    scheduleType: schedule.schedule_type,
+                                    scheduleDays: schedule.schedule_days,
+                                    scheduleTime: time, // Hora específica de este evento
+                                    startDate: schedule.start_date,
+                                    endDate: schedule.end_date,
+                                    isActive: schedule.is_active,
+                                    createdAt: schedule.created_at
+                                }
+                            };
+                            
+                            events.push(event);
+                        }
+                    }
+                    
+                    // Saltar el procesamiento normal para este schedule
+                    continue;
+                    
+                } else {
+                    // Comportamiento original para otros tipos de schedule
+                    const nextExecution = this.calculateNextExecution(schedule);
+                    
+                    if (!nextExecution) {
+                        console.warn('[CalendarView] No next execution for schedule:', schedule.id);
+                        continue;
+                    }
+                    
+                    const event = {
+                        id: 'audio_schedule_' + schedule.id,
+                        title: '🎵 ' + (schedule.title || schedule.filename),
+                        start: nextExecution,
+                        backgroundColor: '#e74c3c',
+                        borderColor: '#c0392b',
+                        textColor: '#ffffff',
+                        extendedProps: {
+                            type: 'audio_schedule',
+                            scheduleId: schedule.id,
+                            filename: schedule.filename,
+                            scheduleType: schedule.schedule_type,
+                            intervalMinutes: schedule.interval_minutes,
+                            intervalHours: schedule.interval_hours,
+                            scheduleDays: schedule.schedule_days,
+                            scheduleTime: schedule.schedule_time,
+                            startDate: schedule.start_date,
+                            endDate: schedule.end_date,
+                            isActive: schedule.is_active,
+                            createdAt: schedule.created_at
+                        }
+                    };
+                    
+                    events.push(event);
+                }
                 
             } catch (error) {
                 console.error('[CalendarView] Error transforming schedule:', schedule.id, error);
@@ -361,6 +469,14 @@ export class CalendarView {
                     return nextTime;
                     
                 case 'specific':
+                    console.log('[TEST] Specific schedule:', {
+                        id: schedule.id,
+                        start_date: schedule.start_date,
+                        schedule_days: schedule.schedule_days,
+                        schedule_time: schedule.schedule_time,
+                        schedule_time_type: typeof schedule.schedule_time
+                    });
+                    
                     if (!schedule.schedule_days || !schedule.schedule_time) return null;
                     
                     const targetDays = [];
@@ -391,6 +507,11 @@ export class CalendarView {
                     }
                     
                     const timeString = parseScheduleTime(schedule.schedule_time);
+                    console.log('[TEST] Parsed time:', {
+                        original: schedule.schedule_time,
+                        parsed: timeString,
+                        is_array: Array.isArray(schedule.schedule_time)
+                    });
                     
                     if (!timeString || timeString.indexOf(':') === -1) {
                         console.warn('[CalendarView] Invalid time format:', timeString);
@@ -406,9 +527,26 @@ export class CalendarView {
                         return null;
                     }
                     
-                    for (let i = 0; i < 7; i++) {
+                    for (let i = 0; i < 60; i++) { // Buscar hasta 60 días
                         const checkDate = new Date();
                         checkDate.setDate(checkDate.getDate() + i);
+                        
+                        console.log('[TEST] Checking day:', {
+                            iteration: i,
+                            checkDate: checkDate.toDateString(),
+                            dayOfWeek: checkDate.getDay(),
+                            targetDays: targetDays,
+                            start_date: schedule.start_date,
+                            is_after_start: checkDate >= new Date(schedule.start_date)
+                        });
+                        
+                        // Validar contra start_date si existe
+                        if (schedule.start_date) {
+                            const startDate = new Date(schedule.start_date);
+                            if (checkDate < startDate) {
+                                continue; // Saltar fechas anteriores al inicio
+                            }
+                        }
                         
                         // FIX TIMEZONE: Compensar por el offset
                         // FullCalendar está mostrando UTC como local, así que restamos 4 horas
@@ -448,65 +586,30 @@ export class CalendarView {
         return null;
     }
     
-    updateUpcomingEvents(events) {
-        const container = document.getElementById('upcoming-events');
-        if (!container) return;
-        
-        const now = new Date();
-        const tomorrow = new Date(now.getTime() + 24 * 60 * 60 * 1000);
-        
-        const upcomingEvents = [];
-        
-        for (let i = 0; i < events.length; i++) {
-            const event = events[i];
-            const eventDate = new Date(event.start);
-            if (eventDate >= now && eventDate <= tomorrow) {
-                upcomingEvents.push(event);
-            }
-        }
-        
-        upcomingEvents.sort((a, b) => new Date(a.start) - new Date(b.start));
-        
-        if (upcomingEvents.length === 0) {
-            container.innerHTML = '<div class="no-events">No hay anuncios programados para las próximas 24 horas</div>';
-            return;
-        }
-        
-        let html = '';
-        for (let i = 0; i < upcomingEvents.length; i++) {
-            const event = upcomingEvents[i];
-            const categoryName = (event.extendedProps && event.extendedProps.type) === 'audio_schedule' 
-                ? 'Schedule de Audio' 
-                : this.getCategoryName(event.extendedProps && event.extendedProps.category);
-                
-            html += '<div class="upcoming-event-item" data-event-id="' + event.id + '">';
-            html += '<div class="event-time">' + this.formatTime(event.start) + '</div>';
-            html += '<div class="event-info">';
-            html += '<div class="event-title">' + event.title + '</div>';
-            html += '<div class="event-category" style="color: ' + event.backgroundColor + '">';
-            html += categoryName;
-            html += '</div></div></div>';
-        }
-        
-        container.innerHTML = html;
-    }
+    // Función updateUpcomingEvents removida (sección Próximos Anuncios ya no existe)
     
-    filterByCategories(categories) {
-        this.activeCategories = categories;
-        
+    filterByScheduleType(activeTypes) {
         const allEvents = this.calendar.getEvents();
+        let visibleCount = 0;
+        let totalCount = 0;
         
         allEvents.forEach(event => {
-            let isActive = false;
-            for (let i = 0; i < this.activeCategories.length; i++) {
-                if (event.extendedProps.category === this.activeCategories[i]) {
-                    isActive = true;
-                    break;
+            // Solo contar eventos de audio schedule
+            if (event.extendedProps && event.extendedProps.type === 'audio_schedule') {
+                totalCount++;
+                
+                const scheduleType = event.extendedProps.scheduleType;
+                const isVisible = activeTypes.includes(scheduleType);
+                
+                event.setProp('display', isVisible ? 'auto' : 'none');
+                
+                if (isVisible) {
+                    visibleCount++;
                 }
             }
-            
-            event.setProp('display', isActive ? 'auto' : 'none');
         });
+        
+        return { visible: visibleCount, total: totalCount };
     }
     
     formatTime(date) {
