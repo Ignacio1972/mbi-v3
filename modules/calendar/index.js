@@ -26,6 +26,23 @@ export default class CalendarModule {
         return this.name;
     }
     
+    /**
+     * Carga estilos adicionales del tooltip
+     * @private
+     */
+    loadTooltipStyles() {
+        // Verificar si ya existe
+        if (!document.getElementById('calendar-tooltip-styles')) {
+            const link = document.createElement('link');
+            link.id = 'calendar-tooltip-styles';
+            link.rel = 'stylesheet';
+            link.href = '/modules/calendar/styles/calendar-tooltips.css';
+            document.head.appendChild(link);
+            console.log('[Calendar] Tooltip styles loaded');
+        }
+    }
+
+    
     async load(container) {
         console.log('[Calendar] Loading module...');
         this.container = container;
@@ -33,6 +50,9 @@ export default class CalendarModule {
         try {
             // Cargar template HTML
             await this.loadTemplate();
+
+            // Cargar estilos del tooltip
+            this.loadTooltipStyles();
             
             // Cargar archivos disponibles de la biblioteca
             await this.loadAvailableFiles();
@@ -181,10 +201,6 @@ export default class CalendarModule {
     /**
      * Muestra la tabla de schedules
      */
-    /**
-     * Muestra la tabla de schedules con columna de categoría
-     * @modified 2024-11-28 - Claude - Agregar columna de categoría con colores
-     */
     displaySchedulesTable(schedules) {
         const container = document.getElementById('schedules-table-container');
         if (!container) return;
@@ -194,24 +210,12 @@ export default class CalendarModule {
             return;
         }
         
-        // Definir información de categorías
-        const categoryInfo = {
-            'ofertas': { name: 'Ofertas', emoji: '🛒', color: '#22c55e' },
-            'eventos': { name: 'Eventos', emoji: '🎉', color: '#3b82f6' },
-            'informacion': { name: 'Información', emoji: 'ℹ️', color: '#06b6d4' },
-            'emergencias': { name: 'Emergencias', emoji: '🚨', color: '#ef4444' },
-            'servicios': { name: 'Servicios', emoji: '🛎️', color: '#a855f7' },
-            'horarios': { name: 'Horarios', emoji: '🕐', color: '#f59e0b' },
-            'sin_categoria': { name: 'Sin categoría', emoji: '📁', color: '#6b7280' }
-        };
-        
-        // Crear tabla HTML con columna de categoría
+        // Crear tabla HTML
         let tableHTML = `
             <div class="table-responsive" style="overflow-x: auto;">
                 <table class="schedules-table" style="width: 100%; border-collapse: collapse;">
                     <thead>
                         <tr style="background: rgba(255,255,255,0.05); border-bottom: 2px solid rgba(255,255,255,0.1);">
-                            <th style="padding: 0.75rem; text-align: left;">Categoría</th>
                             <th style="padding: 0.75rem; text-align: left;">Archivo</th>
                             <th style="padding: 0.75rem; text-align: left;">Tipo</th>
                             <th style="padding: 0.75rem; text-align: left;">Programación</th>
@@ -232,32 +236,8 @@ export default class CalendarModule {
             // Título o nombre del archivo
             const displayName = schedule.title || schedule.filename || 'Sin archivo';
             
-            // Obtener información de categoría
-            const category = schedule.category || 'sin_categoria';
-            const catInfo = categoryInfo[category] || categoryInfo['sin_categoria'];
-            
-            // Crear badge de categoría con color
-            const categoryBadge = `
-                <span style="
-                    display: inline-flex;
-                    align-items: center;
-                    gap: 4px;
-                    padding: 4px 10px;
-                    border-radius: 12px;
-                    font-size: 0.85rem;
-                    font-weight: 500;
-                    background: ${catInfo.color}20;
-                    color: ${catInfo.color};
-                    border: 1px solid ${catInfo.color}40;
-                    white-space: nowrap;
-                ">
-                    ${catInfo.emoji} ${catInfo.name}
-                </span>
-            `;
-            
             tableHTML += `
                 <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
-                    <td style="padding: 0.75rem;">${categoryBadge}</td>
                     <td style="padding: 0.75rem;" title="${schedule.filename || ''}">${this.truncateText(displayName, 30)}</td>
                     <td style="padding: 0.75rem;">${type}</td>
                     <td style="padding: 0.75rem;">${timing}</td>

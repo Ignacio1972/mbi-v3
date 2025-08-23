@@ -23,20 +23,6 @@ Siempre hacer BACKUP antes de cualquier modificación
 Documentar TODAS las decisiones tomadas
 Probar exhaustivamente antes de desplegar
 
-### Estructura OBLIGATORIA para respuestas:
-```
-🎯 **Lo que vamos a hacer:** [explicación simple]
-🚀 **Cómo mejora el desarrollo:** [beneficio para el proyecto]
-📝 **Por qué es importante:** [contexto]
-⚡ **Pasos a seguir:**
-   1. [explicación del paso]
-   2. [comando exacto a copiar]
-   3. [qué debe aparecer en pantalla]
-💡 **Si algo sale mal:** [soluciones comunes]
-✅ **Sabrás que funcionó cuando:** [cómo verificar éxito]
-```
-
-## 🖥️ **ENTORNO DE TRABAJO CRÍTICO - VPS DIRECTO**
 
 
 INSTRUCCIÓN PARA ACCESO AL VPS
@@ -120,7 +106,6 @@ git worktree remove ../mbi-v3-feature-nueva
 
 **Antes de proponer cualquier solución, pregúntate:**
 - ¿Es la forma MÁS SIMPLE de hacerlo?
-- ¿Un principiante puede entenderlo en 2 minutos?
 - ¿Sigue los patrones existentes del proyecto?
 - ¿Respeta la regla "1 archivo = 1 función"?
 - ¿Evita crear archivos monolíticos?
@@ -174,25 +159,9 @@ Imagina una **radio inteligente del centro comercial** que puede:
 
 **Estado actual:** 🚧 Desarrollo activo - funcionalidades básicas implementadas
 
+### Arquitectura Técnica Real:
+[text](../../../../../../../../../../../../Users/hrm/Documents/MBI3/mbi-v3/ARQUITECTURA.md)
 
-### Estructura Técnica Real:
-```
-mbi-v3/
-├── index.html              # Página principal (entrada del sistema)
-├── api/                    # Servidor (backend PHP)
-│   ├── config.php          # Configuración (llaves del sistema)
-│   ├── generate.php        # Generador de voz
-│   └── biblioteca.php      # Gestor de archivos
-├── shared/                 # Sistema central (core modules)
-│   ├── event-bus.js        # Comunicación entre módulos
-│   ├── module-loader.js    # Cargador de secciones
-│   └── router.js           # Navegación
-└── modules/                # Los 4 departamentos
-    ├── radio/              # Módulo de radio en vivo
-    ├── message-configurator/# Creador de mensajes
-    ├── campaign-library/   # Biblioteca de anuncios
-    └── calendar/           # Programador de eventos
-```
 
 ## 🔗 **ENLACES RAW PARA CONSULTA RÁPIDA. PODRIAN ESTAR DESACTUALIZADOS. CHEQUEAR CON ARCHIVO ORIGINAL EN VPS SI HAY DUDAS**
 
@@ -380,6 +349,5 @@ define('UPLOAD_DIR', __DIR__ . '/temp/');
 - **Proactively** sugerir mejoras cuando veas oportunidades
 - **Ultra-think** el impacto antes de proponer cambios grandes
 - Mantener el enfoque en simplicidad y patrones consistentes
-- El usuario está aprendiendo - explicar el "por qué" no solo el "cómo"
 
 ---
