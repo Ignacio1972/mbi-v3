@@ -1,53 +1,72 @@
-MBI-v3: Sistema de Radio y Text-to-Speech
-Mall Barrio Independencia - Sistema de Anuncios Automatizados
+# MBI-v3: Sistema de Radio y Text-to-Speech
+**Mall Barrio Independencia - Sistema de Anuncios Automatizados**
 
-Sistema profesional de generación y gestión de anuncios por voz para centros comerciales
-Demo • Instalación • Documentación • Contribuir
+![Version](https://img.shields.io/badge/version-3.1.0-blue)
+![Status](https://img.shields.io/badge/status-stable-green)
+![License](https://img.shields.io/badge/license-MIT-blue)
 
+Sistema profesional de generación y gestión de anuncios por voz para centros comerciales con integración de radio en vivo.
 
-📋 Tabla de Contenidos
+[Demo](http://51.222.25.222/mbi-v3/) • [Documentación](docs/) • [GitHub](https://github.com/Ignacio1972/mbi-v3) • [Milestone v3.1.0](MILESTONE-v3.1.0.md)
 
-Características
-Arquitectura
-Requisitos
-Instalación
-Configuración
-Uso
-Módulos
-API
-Desarrollo
-Troubleshooting
-Contribuir
-Licencia
+---
 
+## 📋 Tabla de Contenidos
 
-✨ Características Principales
-🎯 Core Features
+- [Características](#-características-principales)
+- [Arquitectura](#-arquitectura)
+- [Requisitos](#-requisitos-del-sistema)
+- [Instalación](#-instalación-rápida)
+- [Configuración](#-configuración)
+- [Uso](#-uso)
+- [Módulos](#-módulos-del-sistema)
+- [API](#-api-reference)
+- [Desarrollo](#-desarrollo)
+- [Troubleshooting](#-troubleshooting)
+- [Documentación](#-documentación-técnica)
+- [Contribuir](#-contribuir)
+- [Licencia](#-licencia)
 
-🎤 Text-to-Speech Avanzado: Integración con ElevenLabs para voces naturales en español
-📻 Transmisión en Vivo: Interrupción automática de radio vía AzuraCast
-📚 Biblioteca de Mensajes: Sistema CMS para gestión de anuncios
-📅 Programación Automática: Calendario con ejecución vía cron
-🎨 Interfaz Moderna: SPA con módulos lazy-loaded
-🔄 Sin Compilación: ES6 modules nativos, no requiere build
+---
 
-🎙️ Voces Disponibles
+## ✨ Características Principales
 
-30+ voces profesionales en español (chileno y neutro)
-Configuración granular de estilo, estabilidad y expresividad
-Perfiles pre-configurados por tipo de anuncio
-Preview en tiempo real antes de transmitir
+### 🎯 Core Features
 
-📡 Integración con Radio
+- **🎤 Text-to-Speech Avanzado**: 30+ voces chilenas naturales con ElevenLabs
+- **📻 Radio en Vivo**: Interrupción automática vía AzuraCast
+- **📚 Biblioteca de Mensajes**: Sistema CMS completo para anuncios
+- **📅 Calendario v2**: Programación con 3 tipos de eventos (interval, specific, once)
+- **🎵 Audio Library**: Gestión completa de archivos con favoritos
+- **📊 Mensajes Guardados**: Sistema de templates y drafts
+- **🎨 Interfaz Moderna**: SPA con módulos lazy-loaded
+- **🔄 Sin Compilación**: ES6 modules nativos, no requiere build
 
-Interrupción inmediata de programación
-Cola de mensajes prioritarios
-Historial de reproducción
-Monitoreo en tiempo real
+### 🎙️ Sistema de Voces
 
+- **30+ voces profesionales** en español chileno
+- **Parámetros ajustables**:
+  - Style (0-1): Neutral → Expresivo
+  - Stability (0-1): Variable → Estable  
+  - Similarity Boost (0-1): Claridad de voz
+  - Speaker Boost: Mejora de calidad
+- **Optimización automática** por tipo de mensaje
+- **Preview en tiempo real** antes de transmitir
 
-🏗️ Arquitectura
-Frontend
+### 📡 Integración con Radio
+
+- Interrupción inmediata de programación
+- Cola de mensajes prioritarios
+- Historial de reproducción
+- Monitoreo en tiempo real
+- Procesamiento de audio (agregar silencios)
+
+---
+
+## 🏗️ Arquitectura
+
+### Frontend
+```
 ┌─────────────────────────────────────┐
 │         index.html (SPA)            │
 ├─────────────────────────────────────┤
@@ -56,77 +75,92 @@ Frontend
 │  Router  │  Module  │   Storage    │
 │          │  Loader  │   Manager    │
 ├──────────┴──────────┴──────────────┤
-│            Modules                  │
-├──────┬──────┬──────┬───────────────┤
-│Config│ Lib  │ Cal  │    Radio      │
-└──────┴──────┴──────┴───────────────┘
-Backend
+│            5 Modules                │
+├────┬────┬────┬────┬────────────────┤
+│Conf│Lib │Cal │Audio│    Radio      │
+└────┴────┴────┴────┴────────────────┘
+```
+
+### Backend
+```
 ┌─────────────────────────────────────┐
-│         PHP 8.1 REST API            │
+│         PHP 7.4 REST API            │
 ├─────────────────────────────────────┤
 │     ElevenLabs  │   AzuraCast       │
 ├─────────────────┴───────────────────┤
 │     SQLite DB   │   File System     │
 └─────────────────────────────────────┘
+```
 
-📦 Requisitos del Sistema
-Servidor
+---
 
-OS: Ubuntu 20.04+ / Debian 11+
-Web Server: Nginx 1.18+ o Apache 2.4+
-PHP: 8.1+ con extensiones:
+## 📦 Requisitos del Sistema
 
-curl
-json
-sqlite3
-mbstring
+### Servidor
+- **OS**: Ubuntu 20.04+ / Debian 11+
+- **Web Server**: Nginx 1.18+ o Apache 2.4+
+- **PHP**: 7.4+ con extensiones:
+  - curl
+  - json
+  - sqlite3
+  - mbstring
+- **FFmpeg**: Para procesamiento de audio (opcional)
+- **RAM**: Mínimo 2GB
+- **Storage**: 10GB+
 
+### Cliente
+- **Navegadores soportados**:
+  - Chrome 90+
+  - Firefox 88+
+  - Safari 14+
+  - Edge 90+
+- **JavaScript**: ES6 modules support requerido
 
-FFmpeg: Para procesamiento de audio
-Docker: Para integración con AzuraCast
+### APIs Externas
+- **ElevenLabs**: API key requerida (v1)
+- **AzuraCast**: Instancia configurada con API key
 
-Cliente
+---
 
-Navegadores soportados:
+## 🚀 Instalación Rápida
 
-Chrome 90+
-Firefox 88+
-Safari 14+
-Edge 90+
-
-
-JavaScript: ES6 modules support requerido
-
-APIs Externas
-
-ElevenLabs: API key requerida
-AzuraCast: Instancia configurada con API key
-
-
-🚀 Instalación Rápida
-1. Clonar el repositorio
-bashgit clone https://github.com/Ignacio1972/mbi-v3.git
+### 1. Clonar el repositorio
+```bash
+git clone https://github.com/Ignacio1972/mbi-v3.git
 cd mbi-v3
-2. Configurar permisos
-bash# Crear directorios necesarios
-mkdir -p api/temp api/logs calendario/logs
+```
+
+### 2. Configurar permisos
+```bash
+# Crear directorios necesarios
+mkdir -p api/temp api/logs api/biblioteca calendario/api/db
 
 # Asignar permisos
 chmod -R 755 .
-chmod -R 777 api/temp api/logs calendario/logs
+chmod -R 777 api/temp api/logs api/biblioteca calendario/api/db
 chown -R www-data:www-data .
-3. Configurar API keys
-bash# Copiar archivo de configuración
+```
+
+### 3. Configurar API keys
+```bash
+# Copiar archivo de configuración
 cp api/config.example.php api/config.php
 
 # Editar con tus credenciales
 nano api/config.php
-4. Inicializar base de datos
-bash# Ejecutar script de inicialización
+```
+
+### 4. Inicializar base de datos
+```bash
+# Crear base de datos SQLite
 php calendario/api/db/init-db.php
-5. Configurar servidor web
-Nginx
-nginxserver {
+```
+
+### 5. Configurar servidor web
+
+#### Nginx
+```nginx
+server {
     listen 80;
     server_name tu-dominio.com;
     root /var/www/mbi-v3;
@@ -138,138 +172,135 @@ nginxserver {
 
     location ~ \.php$ {
         include snippets/fastcgi-php.conf;
-        fastcgi_pass unix:/var/run/php/php8.1-fpm.sock;
+        fastcgi_pass unix:/var/run/php/php7.4-fpm.sock;
     }
 
-    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg)$ {
+    location ~* \.(js|css|png|jpg|jpeg|gif|ico|svg|mp3)$ {
         expires 1y;
         add_header Cache-Control "public, immutable";
     }
 }
-Apache
-apache<VirtualHost *:80>
-    ServerName tu-dominio.com
-    DocumentRoot /var/www/mbi-v3
+```
 
-    <Directory /var/www/mbi-v3>
-        Options Indexes FollowSymLinks
-        AllowOverride All
-        Require all granted
-    </Directory>
-
-    <FilesMatch \.php$>
-        SetHandler "proxy:unix:/var/run/php/php8.1-fpm.sock|fcgi://localhost"
-    </FilesMatch>
-</VirtualHost>
-6. Configurar cron para calendario (opcional)
-bash# Agregar al crontab
+### 6. Configurar cron para calendario
+```bash
+# Agregar al crontab
 crontab -e
 
 # Ejecutar cada minuto
-* * * * * php /var/www/mbi-v3/calendario/api/cron/check-events.php >> /var/www/mbi-v3/calendario/logs/cron.log 2>&1
+* * * * * php /var/www/mbi-v3/calendario/api/cron.php
+```
 
-⚙️ Configuración
-API Keys (api/config.php)
-php<?php
+---
+
+## ⚙️ Configuración
+
+### API Keys (`api/config.php`)
+```php
+<?php
 // ElevenLabs
-define('ELEVENLABS_API_KEY', 'tu_api_key_aqui');
+define('ELEVENLABS_API_KEY', 'sk_...');
 define('ELEVENLABS_BASE_URL', 'https://api.elevenlabs.io/v1');
 
 // AzuraCast
-define('AZURACAST_BASE_URL', 'http://tu-servidor-azuracast');
-define('AZURACAST_API_KEY', 'tu_api_key_aqui');
+define('AZURACAST_BASE_URL', 'http://51.222.25.222');
+define('AZURACAST_API_KEY', 'tu_api_key');
 define('AZURACAST_STATION_ID', 1);
-
-// Playlist ID para anuncios
 define('PLAYLIST_ID_GRABACIONES', 3);
 
 // Directorios
 define('UPLOAD_DIR', __DIR__ . '/temp/');
-define('MAX_FILE_AGE', 3600); // 1 hora
+define('BIBLIOTECA_DIR', __DIR__ . '/biblioteca/');
 ?>
-Voces Disponibles
-El sistema incluye 30+ voces pre-configuradas. Ver archivo modules/message-configurator/voice-presets.js para la lista completa.
+```
 
-💻 Uso
-Acceso al Sistema
+---
 
-Navegar a http://tu-dominio.com
-El sistema carga automáticamente en el módulo Radio
+## 💻 Uso
 
-Flujo de Trabajo Típico
-1. Crear un Mensaje
+### Acceso al Sistema
+1. Navegar a `http://tu-dominio.com/mbi-v3/`
+2. El sistema carga automáticamente en el módulo Radio
 
-Ir a "✏️ Texto Personalizado"
-Escribir o seleccionar plantilla
-Elegir voz y ajustar configuración
-Click en "Generar Audio"
-Escuchar preview
-"Guardar en Biblioteca" o "Enviar a Radio"
+### Flujo de Trabajo Típico
 
-2. Gestionar Biblioteca
+#### 1. Crear un Mensaje
+- Ir a **"✏️ Texto Personalizado"**
+- Escribir texto o seleccionar plantilla
+- Elegir voz y ajustar configuración
+- Click en **"Generar Audio"**
+- Escuchar preview
+- **"Guardar en Biblioteca"** o **"Enviar a Radio"**
 
-Ir a "📚 Biblioteca"
-Buscar o filtrar mensajes
-Acciones disponibles:
+#### 2. Programar Anuncios
+- Ir a **"📅 Calendario"**
+- Crear nuevo schedule
+- Seleccionar tipo:
+  - **Interval**: Cada X tiempo
+  - **Specific**: Días específicos
+  - **Once**: Una sola vez
+- Elegir archivo de audio
+- Activar programación
 
-▶️ Reproducir
-✏️ Editar título
-📻 Enviar a radio
-🗑️ Eliminar
+#### 3. Gestionar Biblioteca
+- Ir a **"📂 Archivos de Audio"**
+- Buscar, filtrar, favoritos
+- Renombrar archivos
+- Enviar directamente a radio
 
+---
 
+## 📦 Módulos del Sistema
 
-3. Programar Anuncios
+### 1. 📻 Radio
+- Control de transmisión en vivo
+- Interrupción inmediata para anuncios
+- Monitor de estado en tiempo real
+- Historial de reproducción
 
-Ir a "📅 Calendario"
-Click en fecha/hora deseada
-Seleccionar archivo de biblioteca
-Configurar repetición (opcional)
-Guardar evento
+### 2. ✏️ Message Configurator
+- Editor de texto con contador (max 5000 chars)
+- 30+ voces chilenas disponibles
+- Controles avanzados de voz (sliders)
+- Plantillas predefinidas por categoría
+- Preview antes de generar
 
+### 3. 📚 Campaign Library  
+- Mensajes guardados con metadata
+- Categorización y búsqueda
+- Sincronización local/servidor
+- Exportación de campañas
+- Drafts automáticos
 
-📦 Módulos del Sistema
-1. 📻 Radio
+### 4. 📅 Calendar v2
+- Programación con 3 tipos de eventos
+- Categorías con colores y emojis
+- Filtrado por categoría
+- Ejecución automática vía cron
+- Base de datos SQLite
 
-Control de transmisión en vivo
-Interrupción inmediata
-Monitor de estado
-Historial de reproducción
+### 5. 📂 Audio Library
+- Gestión de archivos MP3
+- Sistema de favoritos
+- Búsqueda y filtrado
+- Renombrado de archivos
+- Envío directo a radio
 
-2. ✏️ Message Configurator
+---
 
-Editor de texto con contador
-Selector de voces con preview
-Controles de voz avanzados
-Plantillas predefinidas
-Generación y preview de audio
+## 🔌 API Reference
 
-3. 📚 Campaign Library
+### Endpoints Principales
 
-Gestión de mensajes guardados
-Categorización y búsqueda
-Reproducción directa
-Envío a radio
-Metadata editable
-
-4. 📅 Calendar
-
-Vista mensual/semanal/diaria
-Drag & drop de eventos
-Programación recurrente
-Integración con biblioteca
-Ejecución automática vía cron
-
-
-🔌 API Reference
-Endpoints Principales
-POST /api/generate.php
+#### POST `/api/generate.php`
 Genera audio desde texto usando ElevenLabs.
-Request:
-json{
+
+**Request:**
+```json
+{
   "action": "generate_audio",
   "text": "Texto del mensaje",
-  "voice": "cristian",
+  "voice": "fernanda",
   "voice_settings": {
     "style": 0.5,
     "stability": 0.75,
@@ -277,217 +308,257 @@ json{
     "use_speaker_boost": true
   }
 }
-Response:
-json{
+```
+
+**Response:**
+```json
+{
   "success": true,
   "filename": "test_1234567890.mp3",
-  "azuracast_filename": "tts20241128120000.mp3",
+  "azuracast_filename": "tts20241123120000.mp3",
   "processed_text": "Texto procesado"
 }
-POST /api/biblioteca.php
-Gestión de archivos en biblioteca.
-Actions:
+```
 
-list_library: Lista archivos
-delete_library_file: Elimina archivo
-send_library_to_radio: Envía a radio
-rename_file: Renombra con descripción
+#### POST `/api/audio-scheduler.php`
+Gestión de programaciones.
 
-POST /api/library-metadata.php
-Gestión de metadata de mensajes.
-Actions:
+**Actions:**
+- `create`: Crear nueva programación
+- `list`: Listar todas las programaciones
+- `update`: Actualizar programación
+- `delete`: Eliminar programación
+- `toggle`: Activar/desactivar
 
-save: Guardar mensaje
-list: Listar mensajes
-update: Actualizar mensaje
-delete: Eliminar mensaje
+#### POST `/api/saved-messages.php`
+Gestión de mensajes guardados.
 
-Eventos del Sistema
+**Actions:**
+- `save`: Guardar mensaje con metadata
+- `list`: Listar mensajes guardados
+- `get`: Obtener mensaje específico
+- `update`: Actualizar mensaje
+- `delete`: Eliminar mensaje
+
+### Eventos del Sistema
+
 El sistema usa un event bus para comunicación entre módulos:
-javascript// Escuchar evento
+
+```javascript
+// Escuchar evento
 eventBus.on('audio:generated', (data) => {
   console.log('Audio generado:', data);
 });
 
 // Emitir evento
 eventBus.emit('message:saved', messageData);
-Eventos principales:
+```
 
-module:loaded - Módulo cargado
-audio:generated - Audio generado
-message:saved - Mensaje guardado
-radio:interrupted - Radio interrumpida
-calendar:event:created - Evento creado
+**Eventos principales:**
+- `module:loaded` - Módulo cargado
+- `audio:generated` - Audio generado
+- `message:saved` - Mensaje guardado
+- `radio:interrupted` - Radio interrumpida
+- `schedule:created` - Programación creada
 
+---
 
-🛠️ Desarrollo
-Estructura del Proyecto
+## 🛠️ Desarrollo
+
+### Estructura del Proyecto
+```
 mbi-v3/
-├── 📄 index.html           # Entry point
-├── 📁 api/                 # Backend PHP
-│   ├── generate.php        # TTS generation
-│   ├── biblioteca.php      # File management
-│   └── config.php          # Configuration
-├── 📁 shared/              # Core modules
-│   ├── event-bus.js        # Event system
-│   ├── module-loader.js    # Dynamic loading
-│   └── router.js           # Navigation
-├── 📁 modules/             # Feature modules
-│   ├── message-configurator/
-│   ├── campaign-library/
-│   ├── calendar/
-│   └── radio/
-└── 📁 assets/              # Static resources
-Crear un Nuevo Módulo
+├── 📄 index.html               # Entry point
+├── 📁 api/                     # Backend PHP
+│   ├── generate.php            # TTS generation
+│   ├── audio-scheduler.php     # Scheduling
+│   ├── saved-messages.php      # Messages DB
+│   └── config.php              # Configuration
+├── 📁 shared/                  # Core modules
+│   ├── event-bus.js            # Event system
+│   ├── module-loader.js        # Dynamic loading
+│   └── router.js               # Navigation
+├── 📁 modules/                 # Feature modules
+│   ├── message-configurator/   # TTS UI
+│   ├── campaign-library/       # Messages library
+│   ├── calendar/               # Scheduler v2
+│   ├── audio-library/          # Audio files
+│   └── radio/                  # Live radio
+├── 📁 docs/                    # Documentation
+└── 📁 assets/                  # Static resources
+```
 
-Crear estructura de carpetas
+### Crear un Nuevo Módulo
 
-bashmkdir -p modules/mi-modulo/{components,services,styles,templates}
+1. **Crear estructura de carpetas**
+```bash
+mkdir -p modules/mi-modulo/{components,services,styles}
+```
 
-Crear archivo principal (modules/mi-modulo/index.js)
-
-javascriptexport default class MiModulo {
+2. **Crear archivo principal** (`modules/mi-modulo/index.js`)
+```javascript
+export default class MiModulo {
     constructor() {
         this.name = 'mi-modulo';
         this.container = null;
+        this.eventBus = window.eventBus;
     }
     
     getName() { return this.name; }
     
     async load(container) {
         this.container = container;
-        // Inicializar módulo
-        console.log('Mi módulo cargado');
+        this.render();
+        this.eventBus.emit('module:loaded', { module: this.name });
+    }
+    
+    render() {
+        this.container.innerHTML = `
+            <div class="${this.name}">
+                <!-- Tu UI aquí -->
+            </div>
+        `;
     }
     
     async unload() {
-        // Limpiar recursos
         this.container = null;
     }
 }
+```
 
-Registrar ruta (shared/router.js)
+3. **Registrar ruta** (`shared/router.js`)
+```javascript
+this.routes.set('/mi-modulo', 'mi-modulo');
+```
 
-javascriptthis.routes.set('/mi-modulo', 'mi-modulo');
-
-Agregar navegación (index.html)
-
-html<button class="tab-button" data-route="/mi-modulo">
+4. **Agregar navegación** (`index.html`)
+```html
+<button class="tab-button" data-route="/mi-modulo">
     🆕 Mi Módulo
 </button>
-Convenciones de Código
-JavaScript
+```
 
-ES6 modules nativos
-camelCase para variables y funciones
-PascalCase para clases
-Async/await sobre callbacks
-JSDoc para documentación
+### Convenciones de Código
 
-PHP
+#### JavaScript
+- ES6 modules nativos
+- camelCase para variables y funciones
+- PascalCase para clases
+- Async/await sobre callbacks
+- JSDoc para documentación
 
-PSR-12 coding standard
-Type hints cuando sea posible
-Try-catch para manejo de errores
-Logging de operaciones críticas
+#### PHP
+- PSR-12 coding standard
+- Type hints cuando sea posible
+- Try-catch para manejo de errores
+- Logging de operaciones críticas
 
-CSS
+#### CSS
+- BEM methodology para clases
+- CSS variables para temas
+- Mobile-first responsive design
+- No frameworks CSS (vanilla)
 
-BEM methodology para clases
-CSS variables para temas
-Mobile-first responsive design
-No frameworks CSS (vanilla)
+---
 
-Testing
-Frontend
-javascript// Abrir consola del navegador
-// Verificar módulos cargados
-moduleLoader.getLoadedModules();
+## 🐛 Troubleshooting
 
-// Test event bus
-eventBus.emit('test:event', {data: 'test'});
+### Problemas Comunes
 
-// Verificar rutas
-router.getCurrentRoute();
-Backend
-bash# Test de endpoints
-curl -X POST http://localhost/api/generate.php \
-  -H "Content-Type: application/json" \
-  -d '{"action":"list_templates"}'
-
-# Verificar logs
-tail -f api/logs/tts-*.log
-
-🐛 Troubleshooting
-Problemas Comunes
-"Module not loading"
-javascript// Verificar en consola
+#### "Module not loading"
+```javascript
+// Verificar en consola
 console.log(moduleLoader.getLoadedModules());
 // Check: Ruta en router.js
 // Check: Export default en módulo
-"Audio no se genera"
-bash# Verificar API key
-php -r "require 'api/config.php'; echo ELEVENLABS_API_KEY;"
+```
+
+#### "Audio no se genera"
+```bash
+# Verificar API key
+grep ELEVENLABS_API_KEY api/config.php
 
 # Check logs
 tail -f api/logs/tts-*.log
 
-# Test directo
-php api/test-elevenlabs.php
-"Radio no se interrumpe"
-bash# Test AzuraCast connection
-php api/test-azuracast.php
+# Verificar cuota ElevenLabs
+curl -H "xi-api-key: YOUR_KEY" \
+  https://api.elevenlabs.io/v1/user
+```
 
-# Verificar Docker
-docker ps | grep azuracast
+#### "Radio no se interrumpe"
+```bash
+# Test AzuraCast connection
+php api/test-azuracast.php
 
 # Check playlist ID
 curl -H "X-API-Key: YOUR_KEY" \
-  http://azuracast-server/api/station/1/playlists
-"Permisos denegados"
-bash# Fix permissions
+  http://51.222.25.222/api/station/1/playlists
+```
+
+#### "Schedule no ejecuta"
+```bash
+# Verificar cron
+crontab -l | grep mbi-v3
+
+# Check logs
+tail -f calendario/logs/scheduler/*.log
+
+# Verificar timezone
+php -r "echo date_default_timezone_get();"
+```
+
+#### "Permisos denegados"
+```bash
+# Fix permissions
 sudo chown -R www-data:www-data /var/www/mbi-v3
 sudo chmod -R 755 /var/www/mbi-v3
-sudo chmod -R 777 api/temp api/logs
-Logs del Sistema
-Ubicación de logs
+sudo chmod -R 777 api/temp api/logs api/biblioteca
+```
 
-PHP: /api/logs/
-Calendario: /calendario/logs/
-Browser: Console del navegador (F12)
+### Logs del Sistema
 
-Habilitar debug mode
-javascript// En event-bus.js
-this.debug = true; // Cambiar a true
+**Ubicación de logs:**
+- PHP: `/api/logs/`
+- Calendario: `/calendario/logs/`
+- Browser: Console del navegador (F12)
 
-// En PHP
-error_reporting(E_ALL);
-ini_set('display_errors', 1);
+**Habilitar debug mode:**
+```javascript
+// En browser console
+window.DEBUG_TTS = true;
+```
 
-🤝 Contribuir
-Cómo Contribuir
+---
 
-Fork el repositorio
-Crea una rama (git checkout -b feature/AmazingFeature)
-Commit cambios (git commit -m 'Add AmazingFeature')
-Push a la rama (git push origin feature/AmazingFeature)
-Abre un Pull Request
+## 📚 Documentación Técnica
 
-Guías de Contribución
-Antes de codificar
+### Documentos Disponibles
 
-Leer Developer Protocol
-Revisar issues existentes
-Discutir cambios grandes en un issue primero
+- **[TECHNICAL_DOCUMENTATION.md](docs/TECHNICAL_DOCUMENTATION.md)** - Documentación general del sistema
+- **[MESSAGE_CONFIGURATOR_TECHNICAL.md](docs/MESSAGE_CONFIGURATOR_TECHNICAL.md)** - Documentación del módulo TTS
+- **[ARQUITECTURA.md](docs/ARQUITECTURA.md)** - Arquitectura completa
+- **[MANUAL DE DESARROLLO MBI-v3.md](docs/MANUAL%20DE%20DESARROLLO%20MBI-v3.md)** - Guía para desarrolladores
+- **[DEVELOPER_PROTOCOL.md](docs/DEVELOPER_PROTOCOL.md)** - Protocolo de desarrollo
+- **[AUDIO_LIBRARY_MODULE.md](docs/AUDIO_LIBRARY_MODULE.md)** - Módulo de audio
+- **[DATABASE_IMPLEMENTATION_TECHNICAL.md](docs/DATABASE_IMPLEMENTATION_TECHNICAL.md)** - Base de datos
+- **[SCHEDULING_SYSTEM_TECHNICAL.md](docs/SCHEDULING_SYSTEM_TECHNICAL.md)** - Sistema de programación
+- **[MILESTONE-v3.1.0.md](MILESTONE-v3.1.0.md)** - Versión estable actual
 
-Estándares
+---
 
-Código en inglés, comentarios en español
-Tests para nuevas features
-Documentación actualizada
-Commits semánticos
+## 🤝 Contribuir
 
-Commit Messages
+### Cómo Contribuir
+
+1. Fork el repositorio
+2. Crea una rama (`git checkout -b feature/AmazingFeature`)
+3. Commit cambios (`git commit -m 'feat: Add AmazingFeature'`)
+4. Push a la rama (`git push origin feature/AmazingFeature`)
+5. Abre un Pull Request
+
+### Commit Messages
+```
 feat: Agregar nueva voz
 fix: Corregir error en calendario
 docs: Actualizar README
@@ -495,9 +566,15 @@ style: Formatear código
 refactor: Reorganizar módulo X
 test: Agregar tests para Y
 chore: Actualizar dependencias
+```
 
-📄 Licencia
-Este proyecto está licenciado bajo la Licencia MIT - ver el archivo LICENSE para detalles.
+---
+
+## 📄 Licencia
+
+Este proyecto está licenciado bajo la Licencia MIT - ver el archivo [LICENSE](LICENSE) para detalles.
+
+```
 MIT License
 
 Copyright (c) 2024 Mall Barrio Independencia
@@ -505,37 +582,47 @@ Copyright (c) 2024 Mall Barrio Independencia
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
 in the Software without restriction...
+```
 
-👥 Equipo
+---
 
-Desarrollo: Ignacio1972
-Diseño UX: Equipo MBI
-Infraestructura: DevOps MBI
-QA: Testing Team
+## 👥 Equipo
 
+- **Desarrollo**: Ignacio1972
+- **Documentación**: Team MBI
+- **Infraestructura**: DevOps MBI
+- **QA**: Testing Team
 
-🙏 Agradecimientos
+---
 
-ElevenLabs - Por su increíble API de TTS
-AzuraCast - Por el sistema de radio
-La comunidad open source
+## 🙏 Agradecimientos
 
+- **ElevenLabs** - Por su increíble API de TTS
+- **AzuraCast** - Por el sistema de radio
+- **La comunidad open source**
 
-📞 Contacto y Soporte
+---
 
-Issues: GitHub Issues
-Email: soporte@mallbarrioindependencia.cl
-Documentación: Wiki
+## 📞 Contacto y Soporte
 
+- **Issues**: [GitHub Issues](https://github.com/Ignacio1972/mbi-v3/issues)
+- **Email**: soporte@mallbarrioindependencia.cl
+- **Documentación**: [Wiki](https://github.com/Ignacio1972/mbi-v3/wiki)
 
-🔄 Estado del Proyecto
+---
 
-✅ v3.0.0 - Versión estable actual
-🚧 v3.1.0 - En desarrollo (nuevas voces, analytics)
-📋 Roadmap: Ver ROADMAP.md
+## 🔄 Estado del Proyecto
 
+- ✅ **v3.1.0** - Versión estable actual (Nov 2024)
+- 🚧 **v3.2.0** - En desarrollo (Dashboard, Auth)
+- 📋 **Roadmap**: Ver [MILESTONE-v3.1.0.md](MILESTONE-v3.1.0.md#-próximos-pasos-roadmap)
+
+---
 
 <div align="center">
-Hecho con ❤️ para Mall Barrio Independencia
-⬆ Volver arriba
-</div># SSH configurado exitosamente
+
+**Hecho con ❤️ para Mall Barrio Independencia**
+
+[⬆ Volver arriba](#mbi-v3-sistema-de-radio-y-text-to-speech)
+
+</div>
