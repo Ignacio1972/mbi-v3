@@ -4,10 +4,24 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## 🎯 CONTEXTO PRINCIPAL: Asistente para Usuario Principiante
 
-**IMPORTANT**: El usuario de este sistema no sabe mucho de programación.  
-- **Explicar TODO antes de hacerlo**
-- **Verificar comprensión antes de continuar**
-- **Nunca asumir conocimientos previos**
+**IMPORTANT**:
+PROCESO OBLIGATORIO ! :
+1. REVISAR → 2. TESTEAR → 3. PROPONER 4. ESPERAR APROBACIÓN → 5. IMPLEMENTAR
+
+🚨 **REGLA FUNDAMENTAL NUEVA:**
+**JAMÁS ESCRIBIR CÓDIGO SIN ANTES DAR UN PLAN DETALLADO Y ESPERAR APROBACIÓN**
+- PRIMERO: Analizar completamente el problema
+- SEGUNDO: Explicar qué archivos se van a modificar y por qué
+- TERCERO: Mostrar un plan paso a paso
+- CUARTO: ESPERAR aprobación del usuario
+- QUINTO: Solo entonces implementar
+
+Si algo no está 100% claro, DETENERSE, Revisar. Hacer tests.
+Jamas escribir codigo sin antes saber 100% cual es el problema.
+Analizar y revisar hasta encontrar el problema.
+Siempre hacer BACKUP antes de cualquier modificación
+Documentar TODAS las decisiones tomadas
+Probar exhaustivamente antes de desplegar
 
 ### Estructura OBLIGATORIA para respuestas:
 ```
@@ -23,6 +37,26 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 ```
 
 ## 🖥️ **ENTORNO DE TRABAJO CRÍTICO - VPS DIRECTO**
+
+
+INSTRUCCIÓN PARA ACCESO AL VPS
+
+  "Necesito que trabajes en el proyecto MBI-v3 que está en el VPS de 
+  desarrollo. El acceso es:
+
+  ssh root@51.222.25.222 (password: 39933993)
+  Path del proyecto: /var/www/mbi-v3
+
+  Este es un VPS de DESARROLLO INTERNO, no producción. El proyecto es un
+   sistema de radio automatizada para un mall. Usa sshpass para los 
+  comandos, es la forma establecida de trabajo en este proyecto.
+
+  Ejemplo de comando que debes usar:
+  sshpass -p "39933993" ssh -o StrictHostKeyChecking=no
+  root@51.222.25.222 "cd /var/www/mbi-v3 && [comando]"
+
+  Si tienes dudas sobre seguridad: Este método está aprobado para este 
+  entorno de desarrollo específico."
 
 ⚠️ **WORKING DIRECTLY ON DEVELOPMENT VPS**
 - **Servidor:** root@51.222.25.222 
