@@ -1,12 +1,65 @@
 /**
  * Calendar View Component - FullCalendar Wrapper
- * @module CalendarView v2.3 - Optimized
+ * @module CalendarView v2.4 - Con colores por categoría
+ * @modified 2024-11-28 - Claude - Aplicar colores según categoría del contenido
  */
 
 // Constantes globales
 const DAY_NAME_TO_NUMBER = {
     'sunday': 0, 'monday': 1, 'tuesday': 2, 'wednesday': 3,
     'thursday': 4, 'friday': 5, 'saturday': 6
+};
+
+// NUEVO: Definición de colores por categoría
+const CATEGORY_COLORS = {
+    'ofertas': { 
+        bg: '#22c55e', 
+        border: '#16a34a',
+        text: '#ffffff',
+        emoji: '🛒'
+    },
+    'eventos': { 
+        bg: '#3b82f6', 
+        border: '#2563eb',
+        text: '#ffffff',
+        emoji: '🎉'
+    },
+    'informacion': { 
+        bg: '#06b6d4', 
+        border: '#0891b2',
+        text: '#ffffff',
+        emoji: 'ℹ️'
+    },
+    'emergencias': { 
+        bg: '#ef4444', 
+        border: '#dc2626',
+        text: '#ffffff',
+        emoji: '🚨'
+    },
+    'servicios': { 
+        bg: '#a855f7', 
+        border: '#9333ea',
+        text: '#ffffff',
+        emoji: '🛎️'
+    },
+    'horarios': { 
+        bg: '#f59e0b', 
+        border: '#d97706',
+        text: '#ffffff',
+        emoji: '🕐'
+    },
+    'sin_categoria': { 
+        bg: '#6b7280', 
+        border: '#4b5563',
+        text: '#ffffff',
+        emoji: '📁'
+    },
+    'general': { // Alias para sin_categoria
+        bg: '#6b7280', 
+        border: '#4b5563',
+        text: '#ffffff',
+        emoji: '📢'
+    }
 };
 
 // Función auxiliar para parsear schedule_time
@@ -163,39 +216,47 @@ export class CalendarView {
         }
     }
     
+    /**
+     * MODIFICADO: Personalizar evento con emoji de categoría
+     */
     customizeEvent(info) {
         const event = info.event;
         const element = info.el;
         
-        const categoryIcons = {
-            'ofertas': '🛒',
-            'horarios': '🕐',
-            'eventos': '🎉',
-            'seguridad': '⚠️',
-            'servicios': '🛎️',
-            'emergencias': '🚨'
-        };
+        // Obtener categoría del evento
+        const category = event.extendedProps.category || 'sin_categoria';
+        const categoryInfo = CATEGORY_COLORS[category] || CATEGORY_COLORS['sin_categoria'];
         
-        const icon = categoryIcons[event.extendedProps.category] || '📢';
-        
+        // Actualizar el título con el emoji de la categoría
         const titleEl = element.querySelector('.fc-event-title');
         if (titleEl) {
-            titleEl.innerHTML = icon + ' ' + event.title;
+            titleEl.innerHTML = categoryInfo.emoji + ' ' + event.title.replace(/^🎵\s*/, '');
         }
         
         this.addEventTooltip(element, event);
         
+        // Marcar eventos de alta prioridad
         if (event.extendedProps.priority >= 8) {
             element.classList.add('high-priority');
         }
+        
+        // Agregar clase de categoría para estilos adicionales
+        element.classList.add(`event-category-${category}`);
     }
     
     addEventTooltip(element, event) {
         const tooltip = document.createElement('div');
         tooltip.className = 'event-tooltip';
         
+        // Obtener información de categoría
+        const category = event.extendedProps.category || 'sin_categoria';
+        const categoryInfo = CATEGORY_COLORS[category] || CATEGORY_COLORS['sin_categoria'];
+        
         let tooltipContent = '<div class="tooltip-header">' + event.title + '</div>';
         tooltipContent += '<div class="tooltip-body">';
+        
+        // Mostrar categoría
+        tooltipContent += '<p><strong>Categoría:</strong> ' + categoryInfo.emoji + ' ' + this.getCategoryName(category) + '</p>';
         
         const filename = (event.extendedProps && event.extendedProps.filename) || 
                         (event.extendedProps && event.extendedProps.file_path) || 
@@ -263,6 +324,12 @@ export class CalendarView {
                 throw new Error(data.error || 'Error al cargar schedules');
             }
             
+            console.log('[CalendarView] Schedules cargados con categorías:', data.schedules.map(s => ({
+                id: s.id,
+                title: s.title,
+                category: s.category
+            })));
+            
             return this.transformSchedulesToEvents(data.schedules || []);
             
         } catch (error) {
@@ -271,6 +338,9 @@ export class CalendarView {
         }
     }
     
+    /**
+     * MODIFICADO: Transformar schedules a eventos con colores por categoría
+     */
     transformSchedulesToEvents(schedules) {
         const events = [];
         
@@ -278,6 +348,17 @@ export class CalendarView {
             const schedule = schedules[i];
             
             if (!schedule.is_active) continue;
+            
+            // Obtener categoría y colores
+            const category = schedule.category || 'sin_categoria';
+            const categoryColors = CATEGORY_COLORS[category] || CATEGORY_COLORS['sin_categoria'];
+            
+            console.log('[CalendarView] Procesando schedule:', {
+                id: schedule.id,
+                title: schedule.title,
+                category: category,
+                colors: categoryColors
+            });
             
             try {
                 // Detectar si es tipo specific con múltiples configuraciones
@@ -358,25 +439,26 @@ export class CalendarView {
                             eventDate.setSeconds(0);
                             eventDate.setMilliseconds(0);
                             
-                            // Crear el evento
+                            // Crear el evento con colores de categoría
                             const event = {
                                 id: `audio_schedule_${schedule.id}_${dayOffset}_${timeIndex}`,
-                                title: '🎵 ' + (schedule.title || schedule.filename),
+                                title: categoryColors.emoji + ' ' + (schedule.title || schedule.filename),
                                 start: eventDate,
-                                backgroundColor: '#e74c3c',
-                                borderColor: '#c0392b',
-                                textColor: '#ffffff',
+                                backgroundColor: categoryColors.bg,
+                                borderColor: categoryColors.border,
+                                textColor: categoryColors.text,
                                 extendedProps: {
                                     type: 'audio_schedule',
                                     scheduleId: schedule.id,
                                     filename: schedule.filename,
                                     scheduleType: schedule.schedule_type,
                                     scheduleDays: schedule.schedule_days,
-                                    scheduleTime: time, // Hora específica de este evento
+                                    scheduleTime: time,
                                     startDate: schedule.start_date,
                                     endDate: schedule.end_date,
                                     isActive: schedule.is_active,
-                                    createdAt: schedule.created_at
+                                    createdAt: schedule.created_at,
+                                    category: category // Incluir categoría
                                 }
                             };
                             
@@ -398,11 +480,11 @@ export class CalendarView {
                     
                     const event = {
                         id: 'audio_schedule_' + schedule.id,
-                        title: '🎵 ' + (schedule.title || schedule.filename),
+                        title: categoryColors.emoji + ' ' + (schedule.title || schedule.filename),
                         start: nextExecution,
-                        backgroundColor: '#e74c3c',
-                        borderColor: '#c0392b',
-                        textColor: '#ffffff',
+                        backgroundColor: categoryColors.bg,
+                        borderColor: categoryColors.border,
+                        textColor: categoryColors.text,
                         extendedProps: {
                             type: 'audio_schedule',
                             scheduleId: schedule.id,
@@ -415,7 +497,8 @@ export class CalendarView {
                             startDate: schedule.start_date,
                             endDate: schedule.end_date,
                             isActive: schedule.is_active,
-                            createdAt: schedule.created_at
+                            createdAt: schedule.created_at,
+                            category: category // Incluir categoría
                         }
                     };
                     
@@ -427,6 +510,7 @@ export class CalendarView {
             }
         }
         
+        console.log('[CalendarView] Total eventos generados:', events.length);
         return events;
     }
     
@@ -549,7 +633,6 @@ export class CalendarView {
                         }
                         
                         // FIX TIMEZONE: Compensar por el offset
-                        // FullCalendar está mostrando UTC como local, así que restamos 4 horas
                         const adjustedHours = hours - 4; // Restar 4 horas para UTC-4
                         
                         checkDate.setHours(adjustedHours);
@@ -586,8 +669,6 @@ export class CalendarView {
         return null;
     }
     
-    // Función updateUpcomingEvents removida (sección Próximos Anuncios ya no existe)
-    
     filterByScheduleType(activeTypes) {
         const allEvents = this.calendar.getEvents();
         let visibleCount = 0;
@@ -621,16 +702,21 @@ export class CalendarView {
         });
     }
     
+    /**
+     * Obtener nombre legible de categoría
+     */
     getCategoryName(categoryId) {
         const names = {
             'ofertas': 'Ofertas',
             'horarios': 'Horarios',
             'eventos': 'Eventos',
-            'seguridad': 'Seguridad',
+            'informacion': 'Información',
+            'emergencias': 'Emergencias',
             'servicios': 'Servicios',
-            'emergencias': 'Emergencias'
+            'sin_categoria': 'Sin categoría',
+            'general': 'General'
         };
-        return names[categoryId] || 'General';
+        return names[categoryId] || 'Sin categoría';
     }
     
     async refreshAudioSchedules() {

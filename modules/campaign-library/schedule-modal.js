@@ -1,15 +1,26 @@
 /**
  * Modal para programar reproducción automática de audios
+ * @version 2.0 - Agregado soporte para categorías
+ * @modified 2024-11-28 - Claude - Enviar categoría al crear schedule
  */
 
 export class ScheduleModal {
     constructor() {
         this.modalId = 'scheduleModal';
         this.selectedFile = null;
+        this.selectedTitle = null;
+        this.selectedCategory = null; // NUEVO: Guardar categoría
         this.scheduleType = 'interval'; // interval, specific, once
     }
     
-    show(filename, title) {
+    /**
+     * Mostrar modal
+     * @param {string} filename - Nombre del archivo
+     * @param {string} title - Título del audio
+     * @param {string} category - Categoría del mensaje (NUEVO)
+     */
+    show(filename, title, category = null) {
+        console.log('[ScheduleModal] Abriendo con categoría:', category);
         
         // Cargar CSS externo
         if (!document.getElementById("schedule-modal-css")) {
@@ -19,8 +30,11 @@ export class ScheduleModal {
             link.href = "./modules/campaign-library/styles/schedule-modal.css";
             document.head.appendChild(link);
         }
+        
         this.selectedFile = filename;
         this.selectedTitle = title;
+        this.selectedCategory = category || 'sin_categoria'; // NUEVO
+        
         this.createModal();
         document.getElementById(this.modalId).style.display = 'block';
     }
@@ -37,6 +51,9 @@ export class ScheduleModal {
         const existing = document.getElementById(this.modalId);
         if (existing) existing.remove();
         
+        // NUEVO: Obtener emoji y nombre de categoría
+        const categoryInfo = this.getCategoryInfo(this.selectedCategory);
+        
         const modal = document.createElement('div');
         modal.id = this.modalId;
         modal.className = 'modal-overlay';
@@ -49,7 +66,15 @@ export class ScheduleModal {
                 
                 <div class="modal-body">
                     <div class="schedule-info">
-                        <strong>Audio:</strong> ${this.selectedTitle || this.selectedFile}
+                        <div class="info-row">
+                            <strong>Audio:</strong> ${this.selectedTitle || this.selectedFile}
+                        </div>
+                        <div class="info-row">
+                            <strong>Categoría:</strong> 
+                            <span class="category-badge category-${this.selectedCategory}">
+                                ${categoryInfo.emoji} ${categoryInfo.name}
+                            </span>
+                        </div>
                     </div>
                     
                     <div class="form-group">
@@ -142,7 +167,92 @@ export class ScheduleModal {
         `;
         
         document.body.appendChild(modal);
-        // this.addStyles(); // Usando CSS externo ahora
+        this.addCategoryStyles(); // NUEVO: Agregar estilos de categorías
+    }
+    
+    /**
+     * NUEVO: Obtener información de categoría
+     */
+    getCategoryInfo(category) {
+        const categories = {
+            'ofertas': { name: 'Ofertas', emoji: '🛒' },
+            'eventos': { name: 'Eventos', emoji: '🎉' },
+            'informacion': { name: 'Información', emoji: 'ℹ️' },
+            'emergencias': { name: 'Emergencias', emoji: '🚨' },
+            'servicios': { name: 'Servicios', emoji: '🛎️' },
+            'horarios': { name: 'Horarios', emoji: '🕐' },
+            'sin_categoria': { name: 'Sin categoría', emoji: '📁' }
+        };
+        
+        return categories[category] || categories['sin_categoria'];
+    }
+    
+    /**
+     * NUEVO: Agregar estilos de categorías
+     */
+    addCategoryStyles() {
+        if (document.getElementById('category-badge-styles')) return;
+        
+        const styles = document.createElement('style');
+        styles.id = 'category-badge-styles';
+        styles.textContent = `
+            .category-badge {
+                display: inline-flex;
+                align-items: center;
+                padding: 4px 12px;
+                border-radius: 16px;
+                font-size: 0.9rem;
+                font-weight: 500;
+                gap: 4px;
+            }
+            
+            .category-ofertas {
+                background: rgba(34, 197, 94, 0.2);
+                color: #22c55e;
+                border: 1px solid rgba(34, 197, 94, 0.3);
+            }
+            
+            .category-eventos {
+                background: rgba(59, 130, 246, 0.2);
+                color: #3b82f6;
+                border: 1px solid rgba(59, 130, 246, 0.3);
+            }
+            
+            .category-informacion {
+                background: rgba(6, 182, 212, 0.2);
+                color: #06b6d4;
+                border: 1px solid rgba(6, 182, 212, 0.3);
+            }
+            
+            .category-emergencias {
+                background: rgba(239, 68, 68, 0.2);
+                color: #ef4444;
+                border: 1px solid rgba(239, 68, 68, 0.3);
+            }
+            
+            .category-servicios {
+                background: rgba(168, 85, 247, 0.2);
+                color: #a855f7;
+                border: 1px solid rgba(168, 85, 247, 0.3);
+            }
+            
+            .category-horarios {
+                background: rgba(245, 158, 11, 0.2);
+                color: #f59e0b;
+                border: 1px solid rgba(245, 158, 11, 0.3);
+            }
+            
+            .category-sin_categoria {
+                background: rgba(107, 114, 128, 0.2);
+                color: #6b7280;
+                border: 1px solid rgba(107, 114, 128, 0.3);
+            }
+            
+            .info-row {
+                margin-bottom: 8px;
+            }
+        `;
+        document.head.appendChild(styles);
     }
     
     createDaysSelector() {
@@ -198,12 +308,15 @@ export class ScheduleModal {
             action: 'create',
             filename: this.selectedFile,
             title: this.selectedTitle,
+            category: this.selectedCategory, // NUEVO: Enviar categoría
             schedule_type: this.scheduleType,
             start_date: document.getElementById('startDate').value,
             end_date: document.getElementById('endDate').value || null,
             notes: document.getElementById('scheduleNotes').value,
             is_active: true
         };
+        
+        console.log('[ScheduleModal] Guardando con categoría:', data.category);
         
         // Agregar configuración según el tipo
         if (this.scheduleType === 'interval') {
@@ -235,7 +348,7 @@ export class ScheduleModal {
         }
         
         try {
-            const response = await fetch('http://51.222.25.222:3000/api/audio-scheduler.php', {
+            const response = await fetch('/api/audio-scheduler.php', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(data)
@@ -246,6 +359,14 @@ export class ScheduleModal {
             if (result.success) {
                 this.showNotification('✅ Programación creada exitosamente', 'success');
                 this.hide();
+                
+                // Emitir evento para actualizar calendario
+                if (window.eventBus) {
+                    window.eventBus.emit('schedule:created', {
+                        scheduleId: result.schedule_id,
+                        category: result.category
+                    });
+                }
                 
                 // Recargar lista si existe
                 if (window.campaignLibrary && window.campaignLibrary.loadSchedules) {
@@ -272,186 +393,11 @@ export class ScheduleModal {
             setTimeout(() => notification.remove(), 300);
         }, 3000);
     }
-    
-    addStyles() {
-        if (document.getElementById('schedule-modal-styles')) return;
-        
-        const styles = document.createElement('style');
-        styles.id = 'schedule-modal-styles';
-        styles.innerHTML = `
-            #scheduleModal {
-                position: fixed !important;
-                top: 0 !important;
-                left: 0 !important;
-                width: 100% !important;
-                height: 100% !important;
-                background-color: rgba(0, 0, 0, 0.8) !important;
-                z-index: 9999 !important;
-                display: flex !important;
-                align-items: center !important;
-                justify-content: center !important;
-            }
-            
-            .schedule-modal {
-                background: #2a2a2a !important;
-                color: #ffffff !important;
-                border: 2px solid #444 !important;
-                padding: 20px !important;
-                border-radius: 8px !important;
-                max-width: 500px !important;
-                max-height: 80vh !important;
-                overflow-y: auto !important;
-            }
-            
-            .schedule-modal h2 {
-                color: #ffffff !important;
-            }
-            
-            .schedule-modal label {
-                color: #ffffff !important;
-            }
-            
-            .schedule-modal input,
-            .schedule-modal select {
-                background: #1a1a1a !important;
-                color: #ffffff !important;
-                border: 1px solid #444 !important;
-            }
-            
-            .schedule-modal button {
-                background: #4CAF50 !important;
-                color: white !important;
-                border: none !important;
-                padding: 10px 20px !important;
-                cursor: pointer !important;
-            }
-            
-            .schedule-modal .cancel {
-                background: #666 !important;
-            }
-        `;
-        document.head.appendChild(styles);
-        return;
-        styles.textContent = `
-            .schedule-modal {
-                background: #2a2a2a;
-                color: #ffffff;
-                border: 2px solid #444;
-                padding: 20px;
-                border-radius: 8px;
-                max-width: 500px;
-                max-height: 80vh;
-                overflow-y: auto;
-                            background: #2a2a2a;
-                color: #ffffff;
-                border: 2px solid #444;
-                padding: 20px;
-                border-radius: 8px;
-            }
-            
-            .schedule-info {
-                background: #f5f5f5;
-                padding: 10px;
-                border-radius: 5px;
-                margin-bottom: 15px;
-            }
-            
-            .radio-group label {
-                display: block;
-                margin: 5px 0;
-                cursor: pointer;
-            }
-            
-            .interval-inputs {
-                display: flex;
-                align-items: center;
-                gap: 10px;
-            }
-            
-            .interval-inputs input {
-                width: 60px;
-            }
-            
-            .days-selector {
-                display: flex;
-                gap: 10px;
-                flex-wrap: wrap;
-            }
-            
-            .day-checkbox {
-                display: flex;
-                align-items: center;
-                gap: 5px;
-                padding: 5px 10px;
-                border: 1px solid #ddd;
-                border-radius: 5px;
-                cursor: pointer;
-            }
-            
-            .day-checkbox:has(input:checked) {
-                background: #2196F3;
-                color: white;
-            }
-            
-            .time-input {
-                display: flex;
-                gap: 10px;
-                margin: 5px 0;
-                align-items: center;
-            }
-            
-            .config-section {
-                background: #f9f9f9;
-                padding: 15px;
-                border-radius: 5px;
-                margin: 10px 0;
-            }
-            
-            .modal-overlay {
-                position: fixed;
-                top: 0;
-                left: 0;
-                right: 0;
-                bottom: 0;
-                background: rgba(0, 0, 0, 0.5);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-                z-index: 10000;
-            }
-            
-            .modal-content {
-                background: white;
-                border-radius: 10px;
-                box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
-            }
-            
-            .modal-header {
-                display: flex;
-                justify-content: space-between;
-                align-items: center;
-                padding: 20px;
-                border-bottom: 1px solid #eee;
-            }
-            
-            .modal-body {
-                padding: 20px;
-            }
-            
-            .modal-footer {
-                padding: 20px;
-                border-top: 1px solid #eee;
-                display: flex;
-                gap: 10px;
-                justify-content: flex-end;
-            }
-        `;
-        document.head.appendChild(styles);
-    }
 }
 
 // Exponer globalmente
 window.scheduleModal = new ScheduleModal();
+
 // Auto-registrar en window cuando se carga
 if (typeof window !== "undefined") {
     window.ScheduleModal = ScheduleModal;

@@ -607,10 +607,17 @@ render() {
 
     async scheduleMessage(id, title) {
         console.log("[DEBUG] scheduleMessage - ID:", id, "Title:", title);
-        console.log("[DEBUG] Messages array:", this.messages.map(m => ({id: m.id, title: m.title, filename: m.filename})));
         const message = this.messages.find(m => m.id === id);
         
-        if (!message || message.type !== 'audio') {
+        if (!message) {
+            console.error("[DEBUG] Mensaje no encontrado:", id);
+            this.showError('Mensaje no encontrado');
+            return;
+        }
+        
+        console.log("[DEBUG] Mensaje encontrado:", message);
+        
+        if (message.type !== 'audio') {
             this.showError('Solo se pueden programar archivos de audio');
             return;
         }
@@ -624,12 +631,15 @@ render() {
             
             window.scheduleModal = new window.ScheduleModal();
             const modal = window.scheduleModal;
-            console.log("[DEBUG] About to show modal with:", {filename: message.filename, title: title || message.title});
-            modal.show(message.filename, title || message.title);
+            
+            // IMPORTANTE: Pasar la categoría como tercer parámetro
+            const category = message.category || 'sin_categoria';
+            console.log("[DEBUG] Pasando al modal - filename:", message.filename, "title:", title || message.title, "category:", category);
+            
+            modal.show(message.filename, title || message.title, category);
             
         } catch (error) {
             console.error('Error al cargar modal:', error);
-            // Fallback: navegar al calendario
             eventBus.emit('navigate', { module: 'calendar' });
             this.showSuccess('Usa el calendario para programar este audio');
         }
