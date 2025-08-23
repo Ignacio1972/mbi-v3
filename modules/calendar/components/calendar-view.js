@@ -280,14 +280,27 @@ export class CalendarView {
             document.body.appendChild(tooltip);
             
             const rect = element.getBoundingClientRect();
+            
+            // Posicionamiento mejorado considerando scroll
+            const scrollTop = window.pageYOffset || document.documentElement.scrollTop;
+            const scrollLeft = window.pageXOffset || document.documentElement.scrollLeft;
+            
             tooltip.style.position = 'absolute';
-            tooltip.style.left = rect.left + 'px';
-            tooltip.style.top = (rect.bottom + 5) + 'px';
+            tooltip.style.left = (rect.left + scrollLeft) + 'px';
+            tooltip.style.top = (rect.bottom + scrollTop + 5) + 'px';
             tooltip.style.zIndex = '9999';
             
             const tooltipRect = tooltip.getBoundingClientRect();
+            
+            // Ajustar si se sale por la derecha
             if (tooltipRect.right > window.innerWidth) {
-                tooltip.style.left = (window.innerWidth - tooltipRect.width - 10) + 'px';
+                tooltip.style.left = (window.innerWidth - tooltipRect.width - 10 + scrollLeft) + 'px';
+            }
+            
+            // Ajustar si se sale por abajo (mostrar arriba del elemento)
+            if (tooltipRect.bottom > window.innerHeight) {
+                tooltip.style.top = (rect.top + scrollTop - tooltipRect.height - 5) + 'px';
+                tooltip.classList.add('tooltip-above');
             }
         });
         

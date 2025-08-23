@@ -340,11 +340,16 @@ export class ScheduleModal {
             
         } else if (this.scheduleType === 'once') {
             const dateTime = document.getElementById('onceDateTime').value;
-            if (dateTime) {
-                const [date, time] = dateTime.split('T');
-                data.start_date = date;
-                data.schedule_times = [time];
+            if (!dateTime) {
+                this.showNotification('⚠️ Por favor selecciona fecha y hora', 'error');
+                return; // Detener el guardado
             }
+            // Enviar el datetime completo para tipo "once"
+            data.once_datetime = dateTime;
+            // También separar para compatibilidad
+            const [date, time] = dateTime.split('T');
+            data.start_date = date;
+            data.schedule_times = [time];
         }
         
         try {
