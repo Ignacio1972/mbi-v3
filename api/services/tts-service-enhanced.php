@@ -11,83 +11,28 @@ require_once dirname(__DIR__) . '/config.php';
 * Genera audio TTS con las voces nuevas
 */
 function generateEnhancedTTS($text, $voice, $options = []) {
+   logMessage("=== TTS-SERVICE: Voice requested: $voice");
    logMessage("=== TTS-SERVICE: Options recibidas: " . json_encode($options));
    
-   // Mapeo de voces nuevas
-   $voiceMap = [
-       'cristian' => 'nNS8uylvF9GBWVSiIt5h',
-       'fernanda' => 'JM2A9JbRp8XUJ7bdCXJc',
-       'rosa' => 'Yeu6FDmacNCxWs1YwWdK',
-       'alejandro' => '0cheeVA5B3Cv6DGq65cT',
-       'vicente' => 'toHqs8ENHjZX53stqKOK',
-       'zabra' => 'G6LT3kjUUW86fQaWfBaj',
-       // NUEVAS VOCES
-       'azucena' => 'ay4iqk10DLwc8KGSrf2t',
-       'valeria' => '22VndfJPBU7AZORAZZTT',
-       'ninoska' => 'gt8UWQljAEAt5YLqG4LW',
-       'ruben' => 'rp876bky8TK6Abie5pir',
-       'yorman' => 'J2Jb9yZNvpXUNAL3a2bw',
-       'santiago' => 'js7Ktj7UJCd7W0StVolw',
-       'luis' => 'ziigB5Dny14v5lDIHo0x',
-
-       // Mantener compatibilidad con voces antiguas
-       'Rachel' => '21m00Tcm4TlvDq8ikWAM',
-       'Domi' => 'AZnzlk1XvdvUeBnXmlld',
-       'Bella' => 'EXAVITQu4vr4xnSDxMaL',
-       'Elli' => 'MF3mGyEYCl7XYWbV9V6O',
-       'Josh' => 'TxGEqnHWrfWFTfGW9XjX'
-   ];
+   // Sistema dinámico de voces
+   $voicesFile = dirname(__DIR__) . '/data/voices-config.json';
+   $voiceId = $voice; // Por defecto usar como ID directo
    
-   // Cache estático para voces custom (se mantiene durante la ejecución del script)
-   static $customVoicesCache = null;
-
-   // Verificar primero en voces predefinidas
-   if (isset($voiceMap[$voice])) {
-       $voiceId = $voiceMap[$voice];
-       logMessage("TTS Enhanced - Voz predefinida: $voice -> ID: $voiceId");
-   } else {
-       // Buscar en voces custom
-       $voiceFound = false;
+   if (file_exists($voicesFile)) {
+       $config = json_decode(file_get_contents($voicesFile), true);
        
-       // Cargar voces custom si no están en cache
-       if ($customVoicesCache === null) {
-           $customVoicesFile = dirname(__DIR__) . '/data/custom-voices.json';
-           
-           if (file_exists($customVoicesFile)) {
-               $jsonContent = file_get_contents($customVoicesFile);
-               $customVoicesCache = json_decode($jsonContent, true);
-               
-               // Validar que el JSON se decodificó correctamente
-               if (json_last_error() !== JSON_ERROR_NONE) {
-                   logMessage("ERROR: custom-voices.json mal formateado - " . json_last_error_msg());
-                   $customVoicesCache = [];
-               } else {
-                   logMessage("Cache de voces custom cargado: " . count($customVoicesCache) . " voces");
-               }
-           } else {
-               logMessage("ADVERTENCIA: No se encontró archivo custom-voices.json");
-               $customVoicesCache = [];
-           }
-       }
-       
-       // Buscar la voz en el cache
-       if (isset($customVoicesCache[$voice])) {
-           $voiceId = $customVoicesCache[$voice]['id'];
-           $voiceFound = true;
-           logMessage("TTS Enhanced - Voz custom encontrada: $voice -> ID: $voiceId");
+       if (isset($config['voices'][$voice])) {
+           $voiceId = $config['voices'][$voice]['id'];
+           logMessage("Voice found in config: $voice -> $voiceId");
        } else {
-           // Última opción: asumir que el valor es un ID directo de ElevenLabs
-           $voiceId = $voice;
-           logMessage("TTS Enhanced - Voz no encontrada en mapeos, usando como ID directo: $voice");
-           
-           // Log adicional para debugging
-           if (!empty($customVoicesCache)) {
-               logMessage("Voces custom disponibles: " . implode(', ', array_keys($customVoicesCache)));
-           }
+           // Si no está en config, asumir que es un ID directo de ElevenLabs
+           logMessage("Voice not in config, using as direct ID: $voice");
        }
+   } else {
+       logMessage("WARNING: voices-config.json not found, using voice as direct ID");
    }
    
-   logMessage("TTS Enhanced - Voz: $voice -> ID: $voiceId");
+   logMessage("TTS Enhanced - Final Voice ID: $voiceId");
    
    // URL de ElevenLabs
    $url = ELEVENLABS_BASE_URL . "/text-to-speech/$voiceId";

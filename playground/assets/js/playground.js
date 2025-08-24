@@ -120,6 +120,11 @@ class PlaygroundApp {
                 
                 this.currentSection = targetSection;
                 this.addLog(`Switched to section: ${targetSection}`, 'info');
+                
+                // Si es la sección de voice-admin, inicializar
+                if (targetSection === 'voice-admin' && typeof voiceAdmin !== 'undefined') {
+                    voiceAdmin.init();
+                }
             });
         });
     }

@@ -55,37 +55,40 @@ try {
     
     // Agregar action para listar voces
     if ($input["action"] === "list_voices") {
-        // Voces predefinidas del sistema
-        $voices = [
-            "cristian" => ["id" => "nNS8uylvF9GBWVSiIt5h", "label" => "Cristian", "gender" => "M"],
-            "fernanda" => ["id" => "JM2A9JbRp8XUJ7bdCXJc", "label" => "Fernanda", "gender" => "F"],
-            "rosa" => ["id" => "Yeu6FDmacNCxWs1YwWdK", "label" => "Rosa", "gender" => "F"],
-            "juan" => ["id" => "qbzGYq8t9P2fKB7mLvgu", "label" => "Juan", "gender" => "M"],
-            "diego" => ["id" => "mX8uUHrVzP97QoLbmWfp", "label" => "Diego", "gender" => "M"],
-            "sofia" => ["id" => "uGGNaPFCfjtigwmRAQxY", "label" => "Sofia", "gender" => "F"],
-            "carlos" => ["id" => "TuC1BDNFGI6oLZUGo7UE", "label" => "Carlos", "gender" => "M"],
-            "maria" => ["id" => "CtP21Y5JTRBqb42MMAcz", "label" => "María", "gender" => "F"],
-            "laura" => ["id" => "FgCqc9CIJhmNjN5h3aFn", "label" => "Laura", "gender" => "F"],
-            "pedro" => ["id" => "vF3v8rYiP0zqA5c6xYIx", "label" => "Pedro", "gender" => "M"],
-            "esperanza" => ["id" => "Uw5YLCELfcm0jsXtoU0u", "label" => "Esperanza", "gender" => "F"],
-            "andres" => ["id" => "qZ7fFaf3X1QQJPdmPXYp", "label" => "Andrés", "gender" => "M"]
-        ];
+        // Sistema dinámico de voces desde archivo JSON
+        $voicesFile = __DIR__ . '/data/voices-config.json';
         
-        // Cargar voces personalizadas si existen
-        $customVoicesFile = __DIR__ . "/data/custom-voices.json";
-        if (file_exists($customVoicesFile)) {
-            $customVoices = json_decode(file_get_contents($customVoicesFile), true);
-            if ($customVoices && is_array($customVoices)) {
-                // Combinar voces predefinidas con las personalizadas
-                $voices = array_merge($voices, $customVoices);
-                logMessage("Cargadas " . count($customVoices) . " voces personalizadas");
+        if (!file_exists($voicesFile)) {
+            logMessage("ERROR: voices-config.json no encontrado");
+            echo json_encode(['success' => false, 'error' => 'No voices configured']);
+            exit;
+        }
+        
+        $config = json_decode(file_get_contents($voicesFile), true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            logMessage("ERROR: voices-config.json mal formateado");
+            echo json_encode(['success' => false, 'error' => 'Invalid voices configuration']);
+            exit;
+        }
+        
+        $activeVoices = [];
+        
+        // Solo retornar voces activas
+        foreach ($config['voices'] as $key => $voice) {
+            if (isset($voice['active']) && $voice['active'] === true) {
+                $activeVoices[$key] = [
+                    'id' => $voice['id'],
+                    'label' => $voice['label'],
+                    'gender' => $voice['gender']
+                ];
             }
         }
         
-        echo json_encode(["success" => true, "voices" => $voices]);
+        logMessage("Retornando " . count($activeVoices) . " voces activas");
+        echo json_encode(['success' => true, 'voices' => $activeVoices]);
         exit;
     }
-    
     // Lista de templates disponibles
     if ($input['action'] === 'list_templates') {
         $templates = AnnouncementTemplates::getAllTemplates();
