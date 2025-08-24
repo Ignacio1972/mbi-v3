@@ -38,12 +38,53 @@ function generateEnhancedTTS($text, $voice, $options = []) {
        'Josh' => 'TxGEqnHWrfWFTfGW9XjX'
    ];
    
-   // Obtener el ID de la voz
+   // Cache estático para voces custom (se mantiene durante la ejecución del script)
+   static $customVoicesCache = null;
+
+   // Verificar primero en voces predefinidas
    if (isset($voiceMap[$voice])) {
        $voiceId = $voiceMap[$voice];
+       logMessage("TTS Enhanced - Voz predefinida: $voice -> ID: $voiceId");
    } else {
-       // Si no está en el mapa, usar el ID directamente
-       $voiceId = $voice;
+       // Buscar en voces custom
+       $voiceFound = false;
+       
+       // Cargar voces custom si no están en cache
+       if ($customVoicesCache === null) {
+           $customVoicesFile = dirname(__DIR__) . '/data/custom-voices.json';
+           
+           if (file_exists($customVoicesFile)) {
+               $jsonContent = file_get_contents($customVoicesFile);
+               $customVoicesCache = json_decode($jsonContent, true);
+               
+               // Validar que el JSON se decodificó correctamente
+               if (json_last_error() !== JSON_ERROR_NONE) {
+                   logMessage("ERROR: custom-voices.json mal formateado - " . json_last_error_msg());
+                   $customVoicesCache = [];
+               } else {
+                   logMessage("Cache de voces custom cargado: " . count($customVoicesCache) . " voces");
+               }
+           } else {
+               logMessage("ADVERTENCIA: No se encontró archivo custom-voices.json");
+               $customVoicesCache = [];
+           }
+       }
+       
+       // Buscar la voz en el cache
+       if (isset($customVoicesCache[$voice])) {
+           $voiceId = $customVoicesCache[$voice]['id'];
+           $voiceFound = true;
+           logMessage("TTS Enhanced - Voz custom encontrada: $voice -> ID: $voiceId");
+       } else {
+           // Última opción: asumir que el valor es un ID directo de ElevenLabs
+           $voiceId = $voice;
+           logMessage("TTS Enhanced - Voz no encontrada en mapeos, usando como ID directo: $voice");
+           
+           // Log adicional para debugging
+           if (!empty($customVoicesCache)) {
+               logMessage("Voces custom disponibles: " . implode(', ', array_keys($customVoicesCache)));
+           }
+       }
    }
    
    logMessage("TTS Enhanced - Voz: $voice -> ID: $voiceId");
