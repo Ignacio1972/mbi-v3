@@ -55,8 +55,38 @@ export default class MessageConfiguratorModule {
             console.error('[MessageConfigurator] Load failed:', error);
             this.uiHandler?.showStatus('Error al cargar', 'error');
         }
+        // Cargar voces dinámicamente
+        await this.loadVoicesInSelect();
     }
     
+    // Método para cargar voces dinámicamente en el select
+    async loadVoicesInSelect() {
+        try {
+            const voiceService = await import('../../shared/voice-service.js');
+            const voices = await voiceService.VoiceService.loadVoices();
+            
+            const select = this.container.querySelector('#message-voice');
+            if (select) {
+                select.innerHTML = '';
+                
+                Object.entries(voices).forEach(([key, voice]) => {
+                    const option = document.createElement('option');
+                    option.value = key;
+                    option.textContent = `${voice.gender === 'M' ? '👨' : '👩'} ${voice.label}`;
+                    select.appendChild(option);
+                });
+                
+                // Seleccionar la primera voz
+                if (select.options.length > 0) {
+                    select.value = select.options[0].value;
+                    this.stateManager.updateField('voice', select.value);
+                }
+            }
+        } catch (error) {
+            console.error('Error loading voices:', error);
+        }
+    }
+
     async unload() {
         if (this.stateManager?.hasChanges()) {
             const message = this.stateManager.getCurrentMessage();

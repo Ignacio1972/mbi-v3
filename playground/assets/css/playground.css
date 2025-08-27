@@ -589,3 +589,46 @@ input[type="range"] {
     max-height: 500px;
     overflow-y: auto;
 }
+/* Voice Admin Styles */
+#voice-admin input::placeholder,
+#voice-admin select option {
+    color: rgba(255, 255, 255, 0.5);
+}
+
+#voice-admin input:focus,
+#voice-admin select:focus {
+    outline: none;
+    border-color: #4CAF50;
+    box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
+}
+
+#voice-admin .stat-card {
+    transition: transform 0.2s;
+}
+
+#voice-admin .stat-card:hover {
+    transform: translateY(-5px);
+}
+/* Fix Voice Admin colors */
+#voice-admin .stat-card,
+#voice-admin .add-voice-form,
+#voice-admin .voices-list {
+    background: #2a2a3e !important;
+    color: white !important;
+}
+
+#voice-admin input,
+#voice-admin select {
+    background: #1a1a2e !important;
+    color: white !important;
+    border-color: #444 !important;
+}
+
+#voice-admin table {
+    color: white !important;
+}
+
+#voice-admin code {
+    background: #1a1a2e !important;
+    color: #4CAF50 !important;
+}

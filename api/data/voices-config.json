@@ -16,11 +16,35 @@
             "active": true,
             "category": "custom",
             "added_date": "2025-08-24 03:28:44"
+        },
+        "alejandro": {
+            "id": "6nZRiu6mJ5DiYZA30eh5",
+            "label": "alejandro",
+            "gender": "M",
+            "active": true,
+            "category": "custom",
+            "added_date": "2025-08-24 04:32:55"
+        },
+        "jefry": {
+            "id": "pXOYlNbO024q13bfqrw0",
+            "label": "jefry",
+            "gender": "M",
+            "active": false,
+            "category": "custom",
+            "added_date": "2025-08-24 04:57:42"
+        },
+        "pepe": {
+            "id": "FTFn0f40lQFQlsDC71tR",
+            "label": "Pepe",
+            "gender": "M",
+            "active": false,
+            "category": "custom",
+            "added_date": "2025-08-26 02:45:04"
         }
     },
     "settings": {
         "default_voice": "juan_carlos",
-        "last_updated": "2025-08-24T03:28:44+00:00",
+        "last_updated": "2025-08-27T19:31:48+00:00",
         "version": "2.0"
     }
 }
