@@ -1,0 +1,114 @@
+/* Header MBI - Sistema de Anuncios TTS
+   Este archivo NO interfiere con el sistema existente */
+
+/* Header MBI - Sistema de Anuncios TTS */
+.mbi-header {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    width: 100%;
+    background: var(--mbi-bg-secondary);
+    border-bottom: 1px solid var(--mbi-border);
+    padding: 1rem 0;
+    z-index: 1000;
+    box-sizing: border-box;
+}
+
+.mbi-header-content {
+    /* Sin max-width para que ocupe todo */
+    width: 100%;
+    padding: 0 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-sizing: border-box;
+}
+
+/* Ajustar el contenido para que no quede debajo del header fijo */
+.configurator-container {
+    margin-top: 70px; /* Altura del header */
+    position: relative;
+}
+
+/* El resto del CSS se mantiene igual... */
+
+.mbi-logo {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+}
+
+.mbi-logo-icon {
+    width: 40px;
+    height: 40px;
+    background: var(--mbi-primary);
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-weight: bold;
+    font-size: 1.25rem;
+}
+
+.mbi-logo-text {
+    display: flex;
+    flex-direction: column;
+}
+
+.mbi-logo-title {
+    font-size: 1.25rem;
+    font-weight: 600;
+    color: var(--mbi-text-primary);
+}
+
+.mbi-logo-subtitle {
+    font-size: 0.875rem;
+    color: var(--mbi-text-secondary);
+}
+
+.mbi-nav {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.mbi-nav-link {
+    padding: 0.5rem 1rem;
+    color: var(--mbi-text-secondary);
+    text-decoration: none;
+    font-size: 0.875rem;
+    font-weight: 500;
+    border-radius: 8px;
+    transition: all 0.2s;
+    cursor: pointer;
+    background: transparent;
+    border: none;
+}
+
+.mbi-nav-link:hover {
+    background: var(--mbi-bg-tertiary);
+    color: var(--mbi-text-primary);
+}
+
+.mbi-nav-link.active {
+    background: var(--mbi-primary);
+    color: white;
+}
+
+/* Opcional: Ocultar tabs antiguos cuando esté listo */
+.hide-old-nav .configurator-tabs {
+    display: none !important;
+}
+
+/* Responsive */
+@media (max-width: 480px) {
+    .mbi-nav {
+        display: none;
+    }
+    
+    .mbi-header-content {
+        padding: 0 1rem;
+    }
+}

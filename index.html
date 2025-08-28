@@ -7,6 +7,9 @@
     
     <!-- CSS Base -->
     <link rel="stylesheet" href="/assets/css/base.css">
+    <!-- Dark Ocean Theme y Header MBI -->
+<link rel="stylesheet" href="/assets/css/palette-ocean.css">
+<link rel="stylesheet" href="/assets/css/header-mbi.css">
     <!-- CSS del Configurator para los tabs -->
     <link rel="stylesheet" href="/modules/message-configurator/styles/configurator-layout.css">
     
@@ -14,6 +17,35 @@
     <link rel="icon" href="data:image/svg+xml,<svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22><text y=%22.9em%22 font-size=%2290%22>🎙️</text></svg>">
 </head>
 <body>
+    <!-- NUEVO HEADER MBI - Dark Ocean Theme -->
+<header class="mbi-header">
+    <div class="mbi-header-content">
+        <div class="mbi-logo">
+            <div class="mbi-logo-icon">MBI</div>
+            <div class="mbi-logo-text">
+                <div class="mbi-logo-title">Mall Barrio Independencia</div>
+                <div class="mbi-logo-subtitle">Sistema de Anuncios TTS</div>
+            </div>
+        </div>
+        <nav class="mbi-nav">
+            <button class="mbi-nav-link active" data-target="generador">
+                📝 Generador
+            </button>
+            <button class="mbi-nav-link" data-target="mensajes">
+                💾 Mensajes Guardados
+            </button>
+            <button class="mbi-nav-link" data-target="archivos">
+                📁 Archivos
+            </button>
+            <button class="mbi-nav-link" data-target="calendario">
+                📅 Calendario
+            </button>
+            <button class="mbi-nav-link" data-target="radio">
+                📻 Radio
+            </button>
+        </nav>
+    </div>
+</header>
     <!-- Container wrapper para mantener la estética -->
     <div class="configurator-container">
         <!-- Header Principal -->
@@ -109,5 +141,7 @@
     </script>
     <!-- Plugin de Programación -->
     <script type="module" src="/modules/campaign-library/plugins/scheduler-plugin.js"></script>
+<!-- Header Navigation (NO modifica router.js) -->
+<script src="/assets/js/header-navigation.js"></script>
 </body>
 </html>
