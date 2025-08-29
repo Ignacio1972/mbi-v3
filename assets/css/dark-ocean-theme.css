@@ -1,0 +1,13 @@
+/* Dark Ocean Theme Variables */
+:root {
+    --mbi-primary: #387ade;
+    --mbi-primary-light: #6196e5;
+    --mbi-primary-dark: #1f60c1;
+    --mbi-secondary: #90adbb;
+    --mbi-bg-primary: #1c1b19;
+    --mbi-bg-secondary: #2f3236;
+    --mbi-bg-tertiary: #3f4348;
+    --mbi-text-primary: #e9eff1;
+    --mbi-text-secondary: #a6bdc9;
+    --mbi-border: #4d5359;
+}

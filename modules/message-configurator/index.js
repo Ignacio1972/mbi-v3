@@ -26,6 +26,9 @@ export default class MessageConfiguratorModule {
         this.audioHandler = new AudioHandler(this.apiIntegration);
         this.templateHandler = new TemplateHandler();
         this.profileHandler = new ProfileHandler(this.stateManager);
+        
+        // Exponer instancia para handlers onclick
+        window.messageConfigurator = this;
     }
     
     getName() {
@@ -48,6 +51,11 @@ export default class MessageConfiguratorModule {
             
             // Cargar datos
             await this.loadInitialData();
+            
+            // Cargar mensajes recientes
+            await this.loadRecentMessages();
+            
+            // Exponer instancia globalmente para los onclick
             
             eventBus.emit('configurator:loaded');
             
@@ -504,5 +512,97 @@ export default class MessageConfiguratorModule {
         this.audioHandler?.clear();
         this.components = {};
         this.container = null;
+    }
+
+    async loadRecentMessages() {
+        try {
+            const response = await fetch('/api/saved-messages.php', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ 
+                    action: 'list',
+                    limit: 10 
+                })
+            });
+            
+            const data = await response.json();
+            if (data.success && data.messages && data.messages.length > 0) {
+                this.renderRecentMessages(data.messages);
+            }
+        } catch (error) {
+            console.error('Error loading recent messages:', error);
+        }
+    }
+
+    renderRecentMessages(messages) {
+        // Filtrar solo mensajes con título real (no el nombre del archivo)
+        const validMessages = messages.filter(msg => {
+            return msg.title && 
+                   msg.content && 
+                   !msg.title.startsWith('tts') && 
+                   msg.title !== msg.filename;
+        });
+        
+        if (validMessages.length === 0) return;
+
+        // Buscar o crear contenedor
+        let container = this.container.querySelector('#recent-messages-section');
+        if (!container) {
+            // Crear sección después del formulario principal
+            const mainSection = this.container.querySelector('.actions-section') || 
+                              this.container.querySelector('.message-section');
+            if (!mainSection) return;
+            
+            container = document.createElement('div');
+            container.id = 'recent-messages-section';
+            container.className = 'recent-messages-section';
+            container.innerHTML = `
+                <h3 style="margin: 2rem 0 1rem 0; color: var(--text-primary);">
+                    Mensajes Recientes
+                </h3>
+                <div id="recent-messages-grid" class="messages-grid"></div>
+            `;
+            mainSection.parentNode.insertBefore(container, mainSection.nextSibling);
+        }
+        
+        const grid = container.querySelector('#recent-messages-grid');
+        
+        grid.innerHTML = validMessages.map(msg => `
+            <div class="message-card" data-id="${msg.id}">
+                <div class="message-card-header">
+                    <span class="message-title">${msg.title}</span>
+                    <span class="message-category category-${msg.category}">${msg.category}</span>
+                </div>
+                <div class="message-content">${msg.content}</div>
+                <div class="message-card-footer">
+                    <button class="btn-icon" onclick="window.messageConfigurator.playRecentMessage('${msg.filename}')" title="Reproducir">▶️</button>
+                    <button class="btn-icon" onclick="window.messageConfigurator.loadIntoEditor('${msg.content.replace(/'/g, "\\'")}')" title="Cargar en editor">📝</button>
+                    <button class="btn-icon" onclick="window.messageConfigurator.sendRecentToRadio('${msg.filename}')" title="Enviar a radio">📻</button>
+                </div>
+            </div>
+        `).join('');
+    }
+
+    playRecentMessage(filename) {
+        const audio = new Audio(`/api/biblioteca.php?filename=${filename}`);
+        audio.play();
+    }
+
+    loadIntoEditor(text) {
+        const textarea = this.container.querySelector('#message-text');
+        if (textarea) {
+            textarea.value = text;
+            this.stateManager.updateField('text', text);
+            this.uiHandler.updateCharCounter(text.length);
+        }
+    }
+
+    async sendRecentToRadio(filename) {
+        try {
+            await this.audioHandler.sendToRadio(filename);
+            this.uiHandler.showStatus('Enviado a la radio', 'success');
+        } catch (error) {
+            this.uiHandler.showStatus('Error al enviar', 'error');
+        }
     }
 }

@@ -168,6 +168,102 @@ function updateDisplayName($data) {
     return ['success' => false, 'error' => 'Tipo de mensaje no soportado'];
 }
 
+/**
+ * Marcar un mensaje como guardado (favorito)
+ */
+function markAsSaved($data) {
+    global $dbPath;
+    
+    $filename = $data['filename'] ?? '';
+    $id = $data['id'] ?? '';
+    
+    // Si viene con ID, extraer filename
+    if (!$filename && $id) {
+        if (strpos($id, 'audio_') === 0) {
+            $filename = str_replace('audio_', '', $id) . '.mp3';
+        }
+    }
+    
+    if (empty($filename)) {
+        return ['success' => false, 'error' => 'Filename requerido'];
+    }
+    
+    try {
+        $db = new PDO("sqlite:$dbPath");
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        
+        $stmt = $db->prepare("
+            UPDATE audio_metadata 
+            SET is_saved = 1, 
+                saved_at = CURRENT_TIMESTAMP 
+            WHERE filename = ? 
+                AND is_active = 1
+        ");
+        
+        $stmt->execute([$filename]);
+        
+        if ($stmt->rowCount() > 0) {
+            return [
+                'success' => true, 
+                'message' => 'Mensaje guardado en favoritos'
+            ];
+        } else {
+            return [
+                'success' => false, 
+                'error' => 'Mensaje no encontrado'
+            ];
+        }
+        
+    } catch (Exception $e) {
+        return ['success' => false, 'error' => $e->getMessage()];
+    }
+}
+
+/**
+ * Soft delete de un mensaje (marcar como inactivo)
+ */
+function softDeleteMessage($data) {
+    global $dbPath;
+    
+    $id = $data['id'] ?? '';
+    
+    // Extraer filename del ID
+    if (strpos($id, 'audio_') === 0) {
+        $filename = str_replace('audio_', '', $id) . '.mp3';
+    } else {
+        return ['success' => false, 'error' => 'ID inválido'];
+    }
+    
+    try {
+        $db = new PDO("sqlite:$dbPath");
+        $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+        
+        $stmt = $db->prepare("
+            UPDATE audio_metadata 
+            SET is_active = 0,
+                updated_at = CURRENT_TIMESTAMP 
+            WHERE filename = ?
+        ");
+        
+        $stmt->execute([$filename]);
+        
+        if ($stmt->rowCount() > 0) {
+            return [
+                'success' => true, 
+                'message' => 'Mensaje archivado correctamente'
+            ];
+        } else {
+            return [
+                'success' => false, 
+                'error' => 'Mensaje no encontrado'
+            ];
+        }
+        
+    } catch (Exception $e) {
+        return ['success' => false, 'error' => $e->getMessage()];
+    }
+}
+
 // Procesar request
 $method = $_SERVER['REQUEST_METHOD'];
 $input = json_decode(file_get_contents('php://input'), true);
@@ -186,6 +282,14 @@ switch ($action) {
         echo json_encode(updateDisplayName($input));
         break;
         
+    case 'mark_as_saved':
+        echo json_encode(markAsSaved($input));
+        break;
+        
+    case 'soft_delete':
+        echo json_encode(softDeleteMessage($input));
+        break;
+        
     default:
-        echo json_encode(['success' => false, 'error' => 'Acción no válida']);
+        echo json_encode(['success' => false, 'error' => 'Acción no válida: ' . $action]);
 }

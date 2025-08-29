@@ -143,7 +143,7 @@ try {
         }
         
         // Guardar archivo temporal LOCAL para preview
-        $filename = 'test_' . time() . '.mp3';
+        $filename = 'tts' . date('YmdHis') . '.mp3';
         $filepath = UPLOAD_DIR . $filename;
         file_put_contents($filepath, $result['audio']);
         
@@ -174,6 +174,38 @@ try {
         }
         
         logMessage("Audio generado y subido exitosamente: $actualFilename");
+
+        // Guardar en base de datos para mensajes recientes
+        try {
+            $db = new PDO("sqlite:" . __DIR__ . "/../calendario/api/db/calendar.db");
+            $db->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+            
+            // Obtener categoría del input o usar 'sin_categoria' como default
+            $category = $input['category'] ?? 'sin_categoria';
+            
+            $stmt = $db->prepare("
+                INSERT INTO audio_metadata 
+                (filename, display_name, description, category, is_saved, saved_at, created_at) 
+                VALUES (?, ?, ?, ?, 0, datetime('now'), datetime('now'))
+            ");
+            
+            // Usar el texto procesado del resultado
+            $textUsed = $result['processed_text'] ?? $input['text'] ?? 'Mensaje generado';
+            $displayName = substr($textUsed, 0, 100); // Primeros 100 caracteres
+            $stmt->execute([
+                $actualFilename,
+                $displayName,
+                $textUsed,
+                $category
+            ]);
+            
+            logMessage("Metadata guardada en BD para: $filename");
+            logMessage("Categoría asignada: " . $category);
+            logMessage("DB: Guardando con actualFilename=" . $actualFilename . " (original era " . $filename . ")");
+        } catch (Exception $e) {
+            logMessage("Error guardando metadata: " . $e->getMessage());
+        }
+        
         echo json_encode([
             'success' => true,
             'filename' => $filename,           // Nombre local para preview
